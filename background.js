@@ -1052,10 +1052,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     
     // Modo prueba deshabilitado en producción
-        
-        sendResponse({ success: true });
-        return true;
-    }
     
     if (request.action === 'casinoHeartbeat') {
         console.log('💓 Heartbeat desde casino:', request.hostname);
