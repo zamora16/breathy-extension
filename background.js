@@ -21,9 +21,7 @@ let globalLastStateCheckTime = 0;
 let lastStateChangeTime = 0;
 let stateChangeThreshold = 5; // Reducir a 5 segundos para no interferir con cambios legítimos
 
-// Variables del modo de prueba
-let modoPruebaActivo = false;
-let modoPruebaTimer = null;
+// Modo de prueba deshabilitado en producción
 
 // Escuchar cuando se activa una pestaña
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
@@ -566,20 +564,13 @@ function startSessionTimer() {
         clearInterval(sessionUpdateTimer);
     }
     
-    // Determinar intervalo basado en modo de prueba
-    const intervalo = modoPruebaActivo ? 1000 : 30000; // 1s en prueba, 30s normal
-    const multiplicador = modoPruebaActivo ? 60 : 1; // 1 segundo = 1 minuto en prueba
+    // Enviar actualización cada 30 segundos (modo producción)
+    const intervalo = 30000;
     
-    // Enviar actualización
     sessionUpdateTimer = setInterval(() => {
         if (sessionStartTime && activeTabId) {
             const now = Date.now();
             let sessionDurationMinutes = (now - sessionStartTime) / (1000 * 60);
-            
-            // En modo de prueba, acelerar el tiempo
-            if (modoPruebaActivo) {
-                sessionDurationMinutes = sessionDurationMinutes * multiplicador;
-            }
             
             // Verificar si necesita cambiar el estado del dragón
             // PROBLEMA: Necesitamos obtener la configuración real del usuario
@@ -651,7 +642,7 @@ function startSessionTimer() {
                         chrome.tabs.sendMessage(tabId, {
                             type: 'sessionTimeUpdate',
                             sessionDurationMinutes: sessionDurationMinutes,
-                            modoPrueba: modoPruebaActivo,
+                            modoPrueba: false,
                             isPrimary: casinoInfo.isPrimary,
                             // NO enviar dragonState - cada content script debe calcular su propio estado
                             realityCheckMessage: realityCheckMessage
@@ -667,7 +658,7 @@ function startSessionTimer() {
                 chrome.tabs.sendMessage(activeTabId, {
                     type: 'sessionTimeUpdate',
                     sessionDurationMinutes: sessionDurationMinutes,
-                    modoPrueba: modoPruebaActivo,
+                    modoPrueba: false,
                     isPrimary: activeCasinoTabs.get(activeTabId)?.isPrimary || false,
                     dragonState: currentDragonState,
                     realityCheckMessage: realityCheckMessage
@@ -676,8 +667,7 @@ function startSessionTimer() {
                 });
             }
             
-            const tipoModo = modoPruebaActivo ? '🧪 PRUEBA' : '🐉';
-            console.log(`${tipoModo} Actualización de estado: ${sessionDurationMinutes.toFixed(2)} min`);
+            console.log(`🐉 Actualización de estado: ${sessionDurationMinutes.toFixed(2)} min`);
         }
     }, intervalo);
     
@@ -985,46 +975,7 @@ chrome.runtime.onSuspend.addListener(() => {
 });
 
 // Función para notificar el estado del modo prueba a todas las pestañas del dominio actual
-function notificarModoPruebaATodas() {
-    if (!activeTabId || !activeCasinoTabs.has(activeTabId)) {
-        // FALLBACK: Si no hay activeTabId válido, usar la primera pestaña de casino disponible
-        if (activeCasinoTabs.size > 0) {
-            const firstEntry = activeCasinoTabs.entries().next().value;
-            const firstTabId = firstEntry[0];
-            const firstTabInfo = firstEntry[1];
-            
-            // Notificar a todas las pestañas del dominio de esta primera pestaña
-            for (const [tabId, casinoInfo] of activeCasinoTabs) {
-                if (casinoInfo.baseDomain === firstTabInfo.baseDomain) {
-                    chrome.tabs.sendMessage(tabId, {
-                        type: 'modoPruebaChanged',
-                        modoPrueba: modoPruebaActivo,
-                        timestamp: Date.now()
-                    }).catch(error => {
-                        console.log(`❌ No se pudo notificar modo prueba a pestaña ${tabId}:`, error);
-                    });
-                }
-            }
-        }
-        return;
-    }
-    
-    const currentBaseDomain = activeCasinoTabs.get(activeTabId).baseDomain;
-    console.log(`🧪 Notificando modo prueba (${modoPruebaActivo ? 'ACTIVO' : 'INACTIVO'}) a pestañas del dominio: ${currentBaseDomain}`);
-    
-    // Enviar notificación inmediata a todas las pestañas del mismo dominio
-    for (const [tabId, casinoInfo] of activeCasinoTabs) {
-        if (casinoInfo.baseDomain === currentBaseDomain) {
-            chrome.tabs.sendMessage(tabId, {
-                type: 'modoPruebaChanged',
-                modoPrueba: modoPruebaActivo,
-                timestamp: Date.now()
-            }).catch(error => {
-                console.log(`❌ No se pudo notificar modo prueba a pestaña ${tabId}:`, error);
-            });
-        }
-    }
-}
+// Función de modo prueba deshabilitada en producción
 
 // Listener para mensajes desde content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -1100,72 +1051,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
     
-    // Manejar modo de prueba
-    if (request.type === 'activarModoPrueba') {
-        console.log('🧪 Activando modo de prueba por', request.duracion / 1000, 'segundos');
-        modoPruebaActivo = true;
-        
-        // NUEVO: Si el request viene de una pestaña específica, usarla como referencia temporal
-        const originalActiveTabId = activeTabId;
-        if (sender.tab && sender.tab.id && activeCasinoTabs.has(sender.tab.id)) {
-            activeTabId = sender.tab.id;
-        }
-        
-        // Notificar inmediatamente a todas las pestañas del dominio actual
-        notificarModoPruebaATodas();
-        
-        // Restaurar activeTabId original si se cambió
-        if (originalActiveTabId !== activeTabId) {
-            activeTabId = originalActiveTabId;
-        }
-        
-        // Reiniciar timer con nueva configuración
-        if (sessionStartTime && activeTabId) {
-            startSessionTimer();
-        }
-        
-        // Auto-desactivar después del tiempo especificado
-        if (modoPruebaTimer) clearTimeout(modoPruebaTimer);
-        modoPruebaTimer = setTimeout(() => {
-            console.log('🧪 Modo de prueba terminado automáticamente');
-            modoPruebaActivo = false;
-            notificarModoPruebaATodas();
-            if (sessionStartTime && activeTabId) {
-                startSessionTimer(); // Volver al timer normal
-            }
-        }, request.duracion);
-        
-        sendResponse({ success: true });
-        return true;
-    }
-    
-    if (request.type === 'desactivarModoPrueba') {
-        console.log('🧪 Desactivando modo de prueba manualmente');
-        modoPruebaActivo = false;
-        
-        // NUEVO: Si el request viene de una pestaña específica, usarla como referencia temporal
-        const originalActiveTabId = activeTabId;
-        if (sender.tab && sender.tab.id && activeCasinoTabs.has(sender.tab.id)) {
-            activeTabId = sender.tab.id;
-        }
-        
-        // Notificar desactivación a todas las pestañas
-        notificarModoPruebaATodas();
-        
-        // Restaurar activeTabId original si se cambió
-        if (originalActiveTabId !== activeTabId) {
-            activeTabId = originalActiveTabId;
-        }
-        
-        if (modoPruebaTimer) {
-            clearTimeout(modoPruebaTimer);
-            modoPruebaTimer = null;
-        }
-        
-        // Reiniciar timer con configuración normal
-        if (sessionStartTime && activeTabId) {
-            startSessionTimer();
-        }
+    // Modo prueba deshabilitado en producción
         
         sendResponse({ success: true });
         return true;

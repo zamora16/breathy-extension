@@ -4,35 +4,70 @@
  * (Usando sintaxis compatible con content scripts)
  */
 
-// 🎰 Dominios de casinos españoles y principales internacionales
+// 🎰 Dominios de casinos - España, LATAM, Reino Unido y principales internacionales
 const CASINO_DOMAINS = [
+    // === ESPAÑA ===
     "bet365.es", "888sport.es", "pokerstars.es", "winamax.es",
     "betfair.es", "bwin.es", "codere.es", "sportium.es",
     "betsson.es", "luckia.es", "marca.es", "as.com",
     "paf.es", "pastón.es", "goldenpark.es", "casino.com",
     "casinobarcelona.es", "gran-casino-madrid.es", "williamhill.es",
-    "interwetten.es", "bet365.com", "pokerstars.com",
-    "888casino.com", "bwin.com",
-    // Subdominios específicos de juegos y aplicaciones móviles
-    "m.apuestas.codere.es", "cachedownload.sportium.es",
-    "juegos.codere.es", "casino.codere.es", "live.sportium.es",
-    "games.bet365.es", "casino.bwin.es", "slots.luckia.es",
-    // Dominios adicionales de Codere
-    "apuestas.codere.es", "m.codere.es", "mobile.codere.es",
-    "slots.codere.es", "deportes.codere.es", "live.codere.es",
-    "app.codere.es", "www.codere.es",
-    // Más subdominios comunes de otros casinos
-    "m.bet365.es", "mobile.bet365.es", "apps.bet365.es",
-    "m.bwin.es", "mobile.bwin.es", "casino.bet365.es",
-    "poker.bet365.es", "vegas.bet365.es", "bingo.bet365.es",
+    "interwetten.es", "yobingo.es", "kirolbet.es", "retabet.es", 
+    "suertia.es", "rivalo.es", "marathonbet.es", "versus.es", 
+    "wanabet.es", "betway.es", "zebet.es", "circus.be",
+
+    // === MÉXICO ===
+    "caliente.mx", "codere.mx", "betway.com/es-mx", "bet365.mx",
+    "rushbet.mx", "strendus.mx", "winpot.mx", "sportium.mx",
+
+    // === ARGENTINA ===
+    "codere.com.ar", "betsson.com.ar", "bet365.com.ar", "betway.com.ar",
+    "bplay.com.ar", "casinoclub.com.ar",
+
+    // === COLOMBIA ===
+    "wplay.co", "rushbet.co", "betplay.com.co", "codere.com.co",
+    "rivalo.com/co", "zamba.com", "luckia.co",
+
+    // === CHILE ===
+    "enjoybet.cl", "betsson.com/cl", "rushbet.cl", "1xbet.cl",
+
+    // === PERÚ ===
+    "apuestastotales.com", "inkabet.pe", "doradobet.pe", "rushbet.pe",
+
+    // === REINO UNIDO ===
+    "bet365.com", "williamhill.com", "ladbrokes.com", "coral.co.uk",
+    "paddypower.com", "skybet.com", "betfair.com", "888casino.com",
+    "betvictor.com", "unibet.co.uk", "32red.com", "casumo.com",
+    "leovegas.com", "mrgreen.com", "grosvenorcasinos.com",
+    "gentingbet.com", "betfred.com", "mansion.com", "partypoker.com",
+    "casinoluck.com", "slotsmillion.com", "slotsmagic.com",
+    "casinoeuropa.com", "meccabingo.com", "sunbingo.co.uk", "galabingo.com",
+
+    // === MULTI-REGIÓN (Globales) ===
+    "betway.com", "betsson.com", "bwin.com", "pokerstars.com",
+    "888casino.com", "sportingbet.com",
+
+    // === SUBDOMINIOS ESPECÍFICOS ===
+    // Codere
+    "m.apuestas.codere.es", "apuestas.codere.es", "m.codere.es", 
+    "mobile.codere.es", "slots.codere.es", "deportes.codere.es",
+    "live.codere.es", "app.codere.es", "www.codere.es",
+    "juegos.codere.es", "casino.codere.es",
+    
+    // Sportium
+    "cachedownload.sportium.es", "live.sportium.es",
+    
+    // Bet365 (todos los países)
+    "games.bet365.es", "casino.bet365.es", "poker.bet365.es",
+    "vegas.bet365.es", "bingo.bet365.es", "m.bet365.es",
+    "mobile.bet365.es", "apps.bet365.es",
+    
+    // Otros subdominios móviles y casinos
+    "casino.bwin.es", "m.bwin.es", "mobile.bwin.es",
+    "slots.luckia.es", "m.luckia.es", "mobile.luckia.es", 
+    "casino.luckia.es", "poker.luckia.es", "deportes.luckia.es",
     "m.pokerstars.es", "mobile.pokerstars.es", "live.pokerstars.es",
-    "casino.pokerstars.es", "poker.pokerstars.es",
-    "m.luckia.es", "mobile.luckia.es", "casino.luckia.es",
-    "poker.luckia.es", "deportes.luckia.es",
-    // Dominios de otros casinos importantes
-    "yobingo.es", "kirolbet.es", "retabet.es", "suertia.es",
-    "rivalo.es", "marathonbet.es", "versus.es", "wanabet.es",
-    "betway.es", "zebet.es", "versus.es", "circus.be"
+    "casino.pokerstars.es", "poker.pokerstars.es"
 ];
 
 // 🎮 Dominios personalizados registrados por el usuario

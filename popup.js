@@ -1,7 +1,7 @@
 // Popup para la extensión Breathy
 
 // 🔧 CONFIGURACIÓN DE DESARROLLO
-const DEVELOPMENT_MODE = true;
+const DEVELOPMENT_MODE = false;
 
 // 🌍 Función auxiliar para i18n
 function i18n(key, substitutions) {
@@ -121,23 +121,10 @@ function traducirOpcionesSelect() {
     }
 }
 
-// 🔧 Función para configurar el modo desarrollo
+// 🔧 Función para configurar el modo desarrollo (deshabilitado en producción)
 function configurarModoDesarrollo() {
-    const testModeSection = document.querySelector('.test-mode-section');
-    
-    if (DEVELOPMENT_MODE) {
-        // Modo desarrollo: mostrar herramientas de debug
-        if (testModeSection) {
-            testModeSection.style.display = 'block';
-        }
-        console.log('🔧 Modo desarrollo ACTIVADO - Herramientas de debug visibles');
-    } else {
-        // Modo producción: ocultar herramientas de debug
-        if (testModeSection) {
-            testModeSection.style.display = 'none';
-        }
-        console.log('🚀 Modo producción ACTIVADO - Herramientas de debug ocultas');
-    }
+    // Producción: todas las herramientas de debug están deshabilitadas
+    console.log('🚀 Modo producción ACTIVADO');
 }
 
 function setupEventListeners() {
@@ -146,11 +133,7 @@ function setupEventListeners() {
     // Event listener para tutorial
     document.getElementById('mostrarTutorial').addEventListener('click', mostrarTutorial);
     
-    // 🔧 Event listeners del modo desarrollo (solo si está activado)
-    if (DEVELOPMENT_MODE) {
-        document.getElementById('activarPrueba').addEventListener('click', activarModoPrueba);
-        document.getElementById('desactivarPrueba').addEventListener('click', desactivarModoPrueba);
-    }
+    // Modo desarrollo deshabilitado en producción
     
     // Nuevos event listeners para dominios personalizados
     document.getElementById('registrarSitio').addEventListener('click', registrarSitioActual);
@@ -347,53 +330,6 @@ async function notificarCambioConfiguracion(settings) {
     } catch (error) {
         console.error('Error notificando cambios:', error);
     }
-}
-
-// ========== MODO DE PRUEBA ==========
-
-function activarModoPrueba() {
-    console.log('🧪 Activando modo de prueba...');
-    
-    // Notificar a background script que active modo de prueba
-    chrome.runtime.sendMessage({
-        type: 'activarModoPrueba',
-        duracion: 120000 // 2 minutos
-    });
-    
-    // Actualizar botones
-    document.getElementById('activarPrueba').disabled = true;
-    document.getElementById('desactivarPrueba').disabled = false;
-    
-    // Mostrar feedback
-    const btn = document.getElementById('activarPrueba');
-    const originalText = btn.textContent;
-    btn.textContent = '✅ Activo (2 min)';
-    btn.style.background = '#4CAF50';
-    
-    // Auto-desactivar después de 2 minutos
-    setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = '#ff6b35';
-        btn.disabled = false;
-        document.getElementById('desactivarPrueba').disabled = true;
-        console.log('🧪 Modo de prueba terminado automáticamente');
-    }, 120000);
-}
-
-function desactivarModoPrueba() {
-    console.log('🧪 Desactivando modo de prueba...');
-    
-    // Notificar a background script que desactive modo de prueba
-    chrome.runtime.sendMessage({
-        type: 'desactivarModoPrueba'
-    });
-    
-    // Actualizar botones
-    const btn = document.getElementById('activarPrueba');
-    btn.textContent = '🚀 Activar Prueba (2 min)';
-    btn.style.background = '#ff6b35';
-    btn.disabled = false;
-    document.getElementById('desactivarPrueba').disabled = true;
 }
 
 // ==============================
