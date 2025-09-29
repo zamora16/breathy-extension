@@ -1,30 +1,37 @@
 # 🎯 Roadmap de Desarrollo - Breathy Extension
 
-## Versión Actual: 1.0.0 (Freemium Base)
+## Versión Actual: 1.0.0 (Freemium - Totalmente Gratuita)
 
-### ✅ Funcionalidades Implementadas
-- Detección automática de sitios de casino
-- Mascota dragón con estados dinámicos
-- Ejercicios de respiración básicos (3 patrones)
-- Gestión de sesiones con límites de tiempo
-- Sincronización multi-ventana
-- Tutorial interactivo
+### ✅ Funcionalidades Implementadas (GRATIS)
+- Detección automática de sitios de casino españoles
+- Mascota dragón con estados dinámicos (feliz/cansado/enfadado)
+- Ejercicios de respiración completos (3 patrones: 4-4, 4-7-8, 4-4-4)
+- Gestión de sesiones con límites de tiempo personalizables
+- Sincronización multi-ventana perfecta
+- Tutorial interactivo completo
+- Sitios personalizados ilimitados
 - Modo de prueba para desarrollo
+- **TODO ES GRATIS EN LA VERSIÓN 1.0**
 
-## 🚀 Versión 1.1.0 (Freemium Optimizado)
+## 🚀 Versión 2.0.0 (Premium - Primera Versión de Pago)
 
 ### Ramas de Desarrollo
 ```
-feature/freemium → development → master
+feature/premium → development → master
 ```
 
-### Funcionalidades a Implementar
+### 🆕 Funcionalidades Premium ($2.99/mes)
 
-#### 🔒 Sistema de Límites Freemium
-- **Límite de sesiones**: 3 sesiones gratuitas por día
-- **Límite de patrones**: Solo patrón 4-4 en versión gratuita
-- **Límite de sitios**: Máximo 5 sitios personalizados
-- **Recordatorios**: Upgrade prompts suaves
+#### 🔒 Lo que seguirá siendo GRATIS
+- Detección de casinos básica
+- 1 patrón de respiración (4-4)
+- Límite de 3 sesiones por día
+- Máximo 3 sitios personalizados
+
+#### 💰 Nuevas Funciones PREMIUM
+- **Sesiones ilimitadas** por día
+- **Todos los patrones** de respiración avanzados
+- **Sitios personalizados ilimitados**
 
 #### 💰 Funciones Premium ($2.99/mes)
 - **Sesiones ilimitadas** por día

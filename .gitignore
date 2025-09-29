@@ -26,6 +26,10 @@ Thumbs.db
 *.pem
 web-ext-artifacts/
 
+# Publication files (don't commit ZIP files)
+*.zip
+breathy-extension-publish/
+
 # Logs
 logs/
 *.log
