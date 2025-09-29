@@ -1,0 +1,328 @@
+{
+  "extensionName": {
+    "message": "Breathy"
+  },
+  "extensionDescription": {
+    "message": "Breathy es tu compañera que guía la respiración en webs de casino españolas para autocuidado y juego responsable"
+  },
+  "popupTitle": {
+    "message": "Breathy - Configuración"
+  },
+  
+  "statsToday": {
+    "message": "Estadísticas de hoy"
+  },
+  "time": {
+    "message": "Tiempo"
+  },
+  "loading": {
+    "message": "Cargando..."
+  },
+  
+  "configuration": {
+    "message": "Configuración"
+  },
+  "showTutorial": {
+    "message": "🎓 Tutorial"
+  },
+
+  "tutorialTooltip": {
+    "message": "Tutorial"
+  },
+  
+  "tutorialStep1Title": {
+    "message": "¡Bienvenido a Breathy! 🐉"
+  },
+  "tutorialStep1Content": {
+    "message": "Tu compañero digital para un juego responsable. Te ayudo a mantener el control mientras navegas."
+  },
+  "tutorialStep2Title": {
+    "message": "Conoce a Breathy"
+  },
+  "tutorialStep2Content": {
+    "message": "Este es Breathy, tu mascota digital. Sus emociones reflejan tu estado de juego: feliz cuando todo va bien, cansado cuando necesitas un descanso, y enfadado cuando detecta riesgo."
+  },
+  "tutorialStep3Title": {
+    "message": "Detección Inteligente 🎯"
+  },
+  "tutorialStep3Content": {
+    "message": "Detecta automáticamente sitios de apuestas y casinos online. No necesitas configurar nada, funciona de inmediato."
+  },
+  "tutorialStep4Title": {
+    "message": "Ejercicios de Respiración 🌬️"
+  },
+  "tutorialStep4Content": {
+    "message": "Cuando Breathy detecta estrés o sesiones largas, te guía en ejercicios de respiración para mantener la calma."
+  },
+  "tutorialStep5Title": {
+    "message": "Límites Personalizables ⏰"
+  },
+  "tutorialStep5Content": {
+    "message": "Establece límites de tiempo y dinero. Breathy te recordará gentilmente cuando te acerques a estos límites."
+  },
+  "tutorialStep6Title": {
+    "message": "Centro de Control 🎛️"
+  },
+  "tutorialStep6Content": {
+    "message": "Haz clic en el icono de Breathy en la barra de herramientas para acceder a configuraciones y estadísticas."
+  },
+  "tutorialStep7Title": {
+    "message": "Privacidad Total 🔐"
+  },
+  "tutorialStep7Content": {
+    "message": "Todos tus datos se guardan localmente en tu navegador. Breathy no envía información a servidores externos."
+  },
+  "tutorialStep8Title": {
+    "message": "¡Listo para empezar! ✨"
+  },
+  "tutorialStep8Content": {
+    "message": "Ya conoces lo básico. Breathy estará aquí para apoyarte en tu camino hacia un juego más consciente y responsable."
+  },
+  "tutorialPrevious": {
+    "message": "Anterior"
+  },
+  "tutorialNext": {
+    "message": "Siguiente"
+  },
+  "tutorialSkip": {
+    "message": "Saltar"
+  },
+  "tutorialFinish": {
+    "message": "Finalizar"
+  },
+  "breathingPattern": {
+    "message": "Patrón de respiración"
+  },
+  "maxSessionTime": {
+    "message": "Tiempo máximo de sesión"
+  },
+  "saveConfiguration": {
+    "message": "💾 Guardar Configuración"
+  },
+  
+  "customSites": {
+    "message": "Sitios Personalizados"
+  },
+  "customSitesDescription": {
+    "message": "Registra sitios donde quieres que Breathy se active"
+  },
+  "registerCurrentSite": {
+    "message": "Registrar Sitio Actual"
+  },
+  "manageSites": {
+    "message": "Gestionar"
+  },
+  "registeredSites": {
+    "message": "Sitios registrados:"
+  },
+  
+  "testMode": {
+    "message": "Modo Prueba"
+  },
+  "testModeDescription": {
+    "message": "Acelera el tiempo: 1 segundo = 1 minuto real"
+  },
+  "activateTest": {
+    "message": "Activar Prueba (2 min)"
+  },
+  "stopTest": {
+    "message": "Parar"
+  },
+  
+  "simple": {
+    "message": "Simple"
+  },
+  "relaxing": {
+    "message": "Relajante"
+  },
+  "balanced": {
+    "message": "Equilibrio"
+  },
+  
+  "minutes": {
+    "message": "minutos"
+  },
+  "hour": {
+    "message": "hora"
+  },
+  "hours": {
+    "message": "horas"
+  },
+  
+  "companionTagline": {
+    "message": "Tu compañera para el juego responsable"
+  },
+  
+  "dragonStatesInfo": {
+    "message": "😊 Feliz: 0-50% • 😴 Cansado: 50-100% • 😠 Enfadado: límite alcanzado"
+  },
+  
+  "continuousBreathing": {
+    "message": "Respiración continua:"
+  },
+  "continuousBreathingDescription": {
+    "message": "Mantiene el ritmo de respiración siempre activo"
+  },
+  
+  "dragonMessageHappy": {
+    "message": "Difruta de manera responsable, estoy aquí para acompañarte"
+  },
+  "dragonMessageTired": {
+    "message": "Has alcanzado la mitad de tu tiempo. ¿No crees que nos merecemos un descanso?"
+  },
+  "dragonMessageAngry": {
+    "message": "Se acabó el tiempo que te marcaste. Sé fiel a tu decisión"
+  },
+  
+  "takeABreak": {
+    "message": "Tomar un respiro"
+  },
+  "wantToStopPlaying": {
+    "message": "Quiero dejar de jugar"
+  },
+  
+  "breathingExerciseTitle": {
+    "message": "Ejercicio de Respiración"
+  },
+  "breathingInstructions": {
+    "message": "Sigue el círculo con tu respiración"
+  },
+  "inhale": {
+    "message": "INHALA"
+  },
+  "exhale": {
+    "message": "EXHALA"
+  },
+  "hold": {
+    "message": "MANTÉN"
+  },
+  "breathingComplete": {
+    "message": "¡Ejercicio completado!"
+  },
+  "backToGame": {
+    "message": "Volver al juego"
+  },
+  
+  "realityCheck1": {
+    "message": "¿Cómo te sientes hasta ahora? Recuerda que puedes tomar un descanso"
+  },
+  "realityCheck2": {
+    "message": "¿Estás jugando con dinero que puedes permitirte perder?"
+  },
+  "realityCheck3": {
+    "message": "Tómate un momento para hacer unas respiraciones profundas"
+  },
+  "realityCheck4": {
+    "message": "Los juegos están diseñados para que sientas que estás cerca de ganar. No caigas en la trampa"
+  },
+  "realityCheck5": {
+    "message": "Recuerda: el juego debe ser diversión, no una forma de ganar dinero"
+  },
+  "realityCheck6": {
+    "message": "¿Hace cuánto que estás jugando? El tiempo vuela"
+  },
+  "realityCheck7": {
+    "message": "Pregúntate: ¿este dinero lo necesito para algo importante?"
+  },
+  "realityCheck8": {
+    "message": "¿Te sientes en control de tus decisiones de juego?"
+  },
+  "realityCheck9": {
+    "message": "¿Tenías algo que hacer después? No dejes que se te pase la hora"
+  },
+  "realityCheck10": {
+    "message": "Antes de seguir jugando, asegúrate de haberte marcado un límite de pérdidas"
+  },
+  "realityCheck11": {
+    "message": "Recuerda: no hay ninguna estrategia que garantice ganar, todo es suerte"
+  },
+  "realityCheck12": {
+    "message": "¿Si estás jugando para sentirte mejor, es el peor momento para jugar"
+  },
+  "realityCheck13": {
+    "message": "Si algún resultado te ha hecho sentir mal hoy, es señal de parar"
+  },
+  "realityCheck14": {
+    "message": "Intentar recuperar lo perdido es una de las principales causas de grandes pérdidas"
+  },
+  "realityCheck15": {
+    "message": "El juego nunca debe interferir con tus responsabilidades"
+  },
+  
+  "sessions": {
+    "message": "Sesiones"
+  },
+  "today": {
+    "message": "hoy"
+  },
+  
+  "prepareToBreath": {
+    "message": "Prepárate para respirar conmigo"
+  },
+  "startBreathing": {
+    "message": "Iniciar Respiración"
+  },
+  "exit": {
+    "message": "Salir"
+  },
+  "inhaleDeep": {
+    "message": "Inhala profundo"
+  },
+  "exhaleSlow": {
+    "message": "Exhala lento"
+  },
+  "holdBreath": {
+    "message": "Mantén"
+  },
+  "timeRemaining": {
+    "message": "Tiempo restante:"
+  },
+  "excellentFeelBetter": {
+    "message": "¡Excelente! Te sientes mejor 🧘‍♀️"
+  },
+  "sessionCompleted": {
+    "message": "Sesión completada"
+  },
+  "reflectionPrompt": {
+    "message": "Ahora que has parado a respirar,\npiensa tranquilamente...\n¿De verdad deseas seguir jugando?"
+  },
+  "continueGambling": {
+    "message": "Gracias, pero deseo seguir"
+  },
+  "stopGambling": {
+    "message": "Mejor lo dejo por ahora"
+  },
+  "todayText": {
+    "message": "hoy"
+  },
+  "loadingCurrentSite": {
+    "message": "Cargando sitio actual..."
+  },
+  "wellDoneBreakTime": {
+    "message": "¡Bien hecho! Es hora de tomar un descanso 👋"
+  },
+  "suggestionLabel": {
+    "message": "Sugerencia:"
+  },
+  "closeTabSuggestion": {
+    "message": "Cierra esta pestaña y toma un descanso."
+  },
+  "wellbeingImportant": {
+    "message": "Tu bienestar es lo más importante."
+  },
+  "noActiveSession": {
+    "message": "Sin sesión activa"
+  },
+  "continueGamblingShort": {
+    "message": "Seguir jugando"
+  },
+  "currentSiteLabel": {
+    "message": "Sitio actual:"
+  },
+  "couldNotGetCurrentSite": {
+    "message": "No se pudo obtener el sitio actual"
+  },
+  "errorGettingCurrentSite": {
+    "message": "Error al obtener sitio actual"
+  }
+}

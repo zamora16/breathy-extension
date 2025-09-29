@@ -1,0 +1,56 @@
+﻿{
+    "manifest_version": 3,
+    "name": "__MSG_extensionName__",
+    "version": "0.2",
+    "description": "__MSG_extensionDescription__",
+    "default_locale": "es",
+    "icons": {
+        "16": "assets/logo.png",
+        "32": "assets/logo.png",
+        "48": "assets/logo.png",
+        "128": "assets/logo.png"
+    },
+    "permissions": ["storage", "activeTab", "scripting", "notifications", "tabs"],
+    "action": {
+      "default_popup": "popup.html",
+      "default_title": "__MSG_popupTitle__",
+      "default_icon": {
+        "19": "assets/logo.png",
+        "38": "assets/logo.png"
+      }
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": [
+          "modules/constants.js", 
+          "modules/config-manager.js", 
+          "modules/casino-detector.js", 
+          "modules/ui-manager.js",
+          "modules/session-manager.js",
+          "content_script.js"
+        ],
+        "css": ["styles/mascot.css"]
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": [
+          "assets/happy.webm",
+          "assets/tired.webm",
+          "assets/angry.webm",
+          "assets/breath.webm",
+          "assets/tutorial.png",
+          "modules/constants.js",
+          "modules/config-manager.js",
+          "modules/casino-detector.js",
+          "modules/ui-manager.js",
+          "modules/tutorial-manager.js"
+        ],
+        "matches": ["<all_urls>"]
+      }
+    ]
+  }
