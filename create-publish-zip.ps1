@@ -16,7 +16,7 @@ $essentialFolders = @(
     "modules",
     "styles", 
     "assets",
-    "_locales"
+    "locales"
 )
 
 # Crear directorio temporal

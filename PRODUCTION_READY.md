@@ -68,7 +68,7 @@
 ✅ modules/ (todos los módulos)
 ✅ styles/mascot.css
 ✅ assets/ (videos, imágenes)
-✅ _locales/ (en, es)
+✅ locales/ (en, es)
 ```
 
 ## 🎯 Funcionalidades de Producción
