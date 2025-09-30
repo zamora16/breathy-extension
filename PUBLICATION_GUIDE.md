@@ -24,7 +24,7 @@ extensiongamble/
 │   ├── session-manager.js     
 │   ├── ui-manager.js          
 │   └── tutorial-manager.js    
-└── locales/                   ✅
+└── _locales/                  ✅
     ├── en/messages.json       
     └── es/messages.json       
 ```
