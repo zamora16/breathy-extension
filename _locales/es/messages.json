@@ -2,8 +2,14 @@
   "extensionName": {
     "message": "Breathy"
   },
+  "extensionNamePremium": {
+    "message": "Breathy Premium"
+  },
   "extensionDescription": {
     "message": "Breathy es tu compañera que guía la respiración en webs de casino españolas para autocuidado y juego responsable"
+  },
+  "extensionDescriptionPremium": {
+    "message": "Breathy Premium - Tu compañera avanzada con funciones exclusivas para el juego más responsable"
   },
   "popupTitle": {
     "message": "Breathy - Configuración"
