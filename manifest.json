@@ -1,8 +1,8 @@
 ﻿{
     "manifest_version": 3,
-    "name": "__MSG_extensionName__",
-    "version": "0.2",
-    "description": "__MSG_extensionDescription__",
+    "name": "__MSG_extensionNamePremium__",
+    "version": "1.0.0",
+    "description": "__MSG_extensionDescriptionPremium__",
     "default_locale": "es",
     "icons": {
         "16": "assets/logo.png",

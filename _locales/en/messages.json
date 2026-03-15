@@ -2,8 +2,14 @@
   "extensionName": {
     "message": "Breathy"
   },
+  "extensionNamePremium": {
+    "message": "Breathy Premium"
+  },
   "extensionDescription": {
     "message": "Breathy is your companion that guides breathing on Spanish casino websites for self-care and responsible gaming"
+  },
+  "extensionDescriptionPremium": {
+    "message": "Breathy Premium - Your advanced companion with exclusive features for more responsible gaming"
   },
   "popupTitle": {
     "message": "Breathy - Settings"
