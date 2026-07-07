@@ -1,90 +1,83 @@
 // Tutorial Manager - Guía interactiva para usuarios
-// Evitar redeclaración si ya existe
-if (window.TutorialManager) {
-    console.log('TutorialManager ya existe, usando instancia existente');
-} else {
+// Evitar redeclaración si ya existe (puede inyectarse también desde el popup)
+if (!window.TutorialManager) {
+
 class TutorialManager {
     constructor() {
         this.currentStep = 0;
         this.isActive = false;
         this.steps = [];
         this.overlay = null;
-        this.tooltip = null;
+        this.boundKeydownHandler = this.handleKeydown.bind(this);
         this.initializeTutorial();
     }
 
     initializeTutorial() {
-        // Función auxiliar para obtener mensajes traducidos
-        const i18n = (key) => {
-            return chrome.i18n?.getMessage(key) || key;
-        };
-        
+        const i18n = (key) => chrome.i18n?.getMessage(key) || key;
+
         this.steps = [
             {
                 id: 'welcome',
                 title: i18n('tutorialStep1Title'),
                 content: i18n('tutorialStep1Content'),
-                target: null,
-                position: 'center'
+                target: null
             },
             {
                 id: 'mascot',
                 title: i18n('tutorialStep2Title'),
                 content: i18n('tutorialStep2Content'),
-                target: '.breathy-mascot',
-                position: 'bottom'
+                target: '#breathyContainer'
             },
             {
                 id: 'detection',
                 title: i18n('tutorialStep3Title'),
                 content: i18n('tutorialStep3Content'),
-                target: null,
-                position: 'center'
+                target: null
             },
             {
                 id: 'breathing',
                 title: i18n('tutorialStep4Title'),
                 content: i18n('tutorialStep4Content'),
-                target: '.breathing-exercise',
-                position: 'top'
+                target: null
             },
             {
                 id: 'limits',
                 title: i18n('tutorialStep5Title'),
                 content: i18n('tutorialStep5Content'),
-                target: null,
-                position: 'center'
+                target: null
             },
             {
                 id: 'popup',
                 title: i18n('tutorialStep6Title'),
                 content: i18n('tutorialStep6Content'),
-                target: '.extension-icon',
-                position: 'bottom'
+                target: null
             },
             {
                 id: 'privacy',
                 title: i18n('tutorialStep7Title'),
                 content: i18n('tutorialStep7Content'),
-                target: null,
-                position: 'center'
+                target: null
             },
             {
                 id: 'finish',
                 title: i18n('tutorialStep8Title'),
                 content: i18n('tutorialStep8Content'),
-                target: null,
-                position: 'center'
+                target: null
             }
         ];
     }
 
-    async startTutorial() {
-        // Verificar si es la primera vez
-        const hasSeenTutorial = await ConfigManager.get('hasSeenTutorial', false);
-        
-        if (!hasSeenTutorial) {
-            this.showTutorial();
+    // Tutorial automático: solo se muestra la primera vez
+    startTutorial() {
+        try {
+            chrome.storage.sync.get(['hasSeenTutorial'], (result) => {
+                if (chrome.runtime.lastError) return;
+                if (!result.hasSeenTutorial) {
+                    this.showTutorial();
+                }
+            });
+        } catch (error) {
+            // Storage no disponible: no mostrar
         }
     }
 
@@ -93,18 +86,20 @@ class TutorialManager {
         this.currentStep = 0;
         this.createOverlay();
         this.showStep(this.currentStep);
-        
-        // Marcar como visto solo si es la primera vez (tutorial automático)
-        ConfigManager.set('hasSeenTutorial', true);
+
+        try {
+            chrome.storage.sync.set({ hasSeenTutorial: true });
+        } catch (error) {
+            // Ignorar: el tutorial se mostrará de nuevo la próxima vez
+        }
     }
-    
-    // Mostrar tutorial sin marcar como visto (para uso manual)
+
+    // Tutorial manual desde el popup (no altera hasSeenTutorial)
     showTutorialManual() {
         this.isActive = true;
         this.currentStep = 0;
         this.createOverlay();
         this.showStep(this.currentStep);
-        // NO marcar como visto para permitir tutorial automático futuro
     }
 
     createOverlay() {
@@ -119,206 +114,206 @@ class TutorialManager {
                         </div>
                         <span class="step-counter">1 / ${this.steps.length}</span>
                     </div>
-                    <button class="tutorial-close" title="Saltar tutorial">×</button>
+                    <button class="tutorial-close" title="×">×</button>
                 </div>
                 <div class="tutorial-body">
                     <h3 class="tutorial-title"></h3>
                     <p class="tutorial-text"></p>
                 </div>
                 <div class="tutorial-footer">
-                    <button class="tutorial-prev" disabled data-i18n="tutorialPrevious">Anterior</button>
-                    <button class="tutorial-skip" data-i18n="tutorialSkip">Saltar</button>
-                    <button class="tutorial-next" data-i18n="tutorialNext">Siguiente</button>
+                    <button class="tutorial-prev" disabled></button>
+                    <button class="tutorial-skip"></button>
+                    <button class="tutorial-next"></button>
                 </div>
             </div>
         `;
 
-        // Estilos del tutorial
-        const tutorialStyles = document.createElement('style');
-        tutorialStyles.textContent = `
-            .breathy-tutorial-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.7);
-                z-index: 10001;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            }
-
-            .tutorial-content {
-                background: white;
-                border-radius: 12px;
-                max-width: 500px;
-                width: 90%;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                overflow: hidden;
-                animation: tutorialFadeIn 0.3s ease-out;
-            }
-
-            @keyframes tutorialFadeIn {
-                from {
-                    opacity: 0;
-                    transform: scale(0.9) translateY(20px);
+        if (!document.getElementById('breathyTutorialCSS')) {
+            const tutorialStyles = document.createElement('style');
+            tutorialStyles.id = 'breathyTutorialCSS';
+            tutorialStyles.textContent = `
+                .breathy-tutorial-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(20,22,30,0.92);
+                    z-index: 10001;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
-                to {
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
+
+                .tutorial-content {
+                    background: #232330;
+                    border-radius: 14px;
+                    max-width: 410px;
+                    width: 92%;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+                    overflow: hidden;
+                    animation: tutorialFadeIn 0.3s ease-out;
                 }
-            }
 
-            .tutorial-header {
-                padding: 20px 20px 10px;
-                border-bottom: 1px solid #e5e7eb;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
+                @keyframes tutorialFadeIn {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.96) translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
 
-            .tutorial-progress {
-                flex: 1;
-                margin-right: 15px;
-            }
+                .tutorial-header {
+                    padding: 16px 18px 8px;
+                    border-bottom: 1px solid rgba(255,255,255,0.06);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
 
-            .progress-bar {
-                height: 4px;
-                background: #e5e7eb;
-                border-radius: 2px;
-                overflow: hidden;
-                margin-bottom: 8px;
-            }
+                .tutorial-progress {
+                    flex: 1;
+                    margin-right: 10px;
+                }
 
-            .progress-fill {
-                height: 100%;
-                background: linear-gradient(90deg, #10b981, #3b82f6);
-                border-radius: 2px;
-                transition: width 0.3s ease;
-            }
+                .progress-bar {
+                    height: 4px;
+                    background: #1c1c24;
+                    border-radius: 2px;
+                    overflow: hidden;
+                    margin-bottom: 7px;
+                }
 
-            .step-counter {
-                font-size: 12px;
-                color: #6b7280;
-                font-weight: 500;
-            }
+                .progress-fill {
+                    height: 100%;
+                    background: linear-gradient(90deg, #7cc4a4, #4a8090);
+                    border-radius: 2px;
+                    transition: width 0.3s ease;
+                }
 
-            .tutorial-close {
-                background: none;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-                color: #6b7280;
-                padding: 0;
-                width: 30px;
-                height: 30px;
-                border-radius: 15px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s;
-            }
+                .step-counter {
+                    font-size: 12px;
+                    color: #b0b0c0;
+                    font-weight: 500;
+                }
 
-            .tutorial-close:hover {
-                background: #f3f4f6;
-                color: #374151;
-            }
+                .tutorial-close {
+                    background: none;
+                    border: none;
+                    font-size: 22px;
+                    cursor: pointer;
+                    color: #b0b0c0;
+                    padding: 0;
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.2s, color 0.2s;
+                }
 
-            .tutorial-body {
-                padding: 30px;
-                text-align: center;
-            }
+                .tutorial-close:hover {
+                    background: #1c1c24;
+                    color: #7cc4a4;
+                }
 
-            .tutorial-title {
-                margin: 0 0 15px;
-                font-size: 24px;
-                font-weight: 600;
-                color: #111827;
-            }
+                .tutorial-body {
+                    padding: 22px 18px 24px;
+                    text-align: center;
+                }
 
-            .tutorial-text {
-                margin: 0;
-                font-size: 16px;
-                line-height: 1.5;
-                color: #4b5563;
-            }
+                .tutorial-title {
+                    margin: 0 0 10px;
+                    font-size: 19px;
+                    font-weight: 600;
+                    color: #e8e8f0;
+                    letter-spacing: 0.01em;
+                }
 
-            .tutorial-footer {
-                padding: 20px;
-                background: #f9fafb;
-                display: flex;
-                justify-content: space-between;
-                gap: 10px;
-            }
+                .tutorial-text {
+                    margin: 0;
+                    font-size: 15px;
+                    line-height: 1.6;
+                    color: #b0b0c0;
+                }
 
-            .tutorial-footer button {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 6px;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
+                .tutorial-footer {
+                    padding: 14px 18px 16px;
+                    background: #1c1c24;
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 8px;
+                }
 
-            .tutorial-prev {
-                background: #e5e7eb;
-                color: #6b7280;
-            }
+                .tutorial-footer button {
+                    padding: 8px 16px;
+                    border: none;
+                    border-radius: 7px;
+                    font-size: 13px;
+                    font-weight: 500;
+                    font-family: inherit;
+                    cursor: pointer;
+                    transition: background 0.2s, color 0.2s, opacity 0.2s;
+                }
 
-            .tutorial-prev:not(:disabled):hover {
-                background: #d1d5db;
-            }
+                .tutorial-prev {
+                    background: #232330;
+                    color: #b0b0c0;
+                }
 
-            .tutorial-prev:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
+                .tutorial-prev:not(:disabled):hover {
+                    background: #2e2e3a;
+                }
 
-            .tutorial-skip {
-                background: transparent;
-                color: #6b7280;
-                border: 1px solid #d1d5db;
-            }
+                .tutorial-prev:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
 
-            .tutorial-skip:hover {
-                background: #f3f4f6;
-            }
+                .tutorial-skip {
+                    background: transparent;
+                    color: #b0b0c0;
+                    border: 1px solid #2e2e3a;
+                }
 
-            .tutorial-next {
-                background: linear-gradient(90deg, #10b981, #3b82f6);
-                color: white;
-            }
+                .tutorial-skip:hover {
+                    background: #232330;
+                }
 
-            .tutorial-next:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-            }
+                .tutorial-next {
+                    background: #3e6f7c;
+                    color: #e8f4f2;
+                }
 
-            .tutorial-highlight {
-                position: relative;
-                z-index: 10002;
-                box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3) !important;
-                border-radius: 8px !important;
-            }
-        `;
+                .tutorial-next:hover {
+                    background: #4a8090;
+                }
 
-        document.head.appendChild(tutorialStyles);
+                .tutorial-highlight {
+                    position: relative;
+                    z-index: 10002;
+                    box-shadow: 0 0 0 4px rgba(124,196,164,0.22) !important;
+                    border-radius: 8px !important;
+                }
+            `;
+            document.head.appendChild(tutorialStyles);
+        }
+
         document.body.appendChild(this.overlay);
 
-        // Aplicar traducciones a botones
         this.applyTranslations();
 
-        // Event listeners
         this.overlay.querySelector('.tutorial-close').onclick = () => this.closeTutorial();
         this.overlay.querySelector('.tutorial-skip').onclick = () => this.closeTutorial();
         this.overlay.querySelector('.tutorial-prev').onclick = () => this.previousStep();
         this.overlay.querySelector('.tutorial-next').onclick = () => this.nextStep();
 
-        // ESC para cerrar
-        document.addEventListener('keydown', this.handleKeydown.bind(this));
+        document.addEventListener('keydown', this.boundKeydownHandler);
     }
 
     showStep(stepIndex) {
@@ -334,23 +329,20 @@ class TutorialManager {
 
         title.textContent = step.title;
         text.textContent = step.content;
-        
-        // Actualizar progreso
+
         const progress = ((stepIndex + 1) / this.steps.length) * 100;
         progressFill.style.width = `${progress}%`;
         stepCounter.textContent = `${stepIndex + 1} / ${this.steps.length}`;
 
-        // Botones
         prevButton.disabled = stepIndex === 0;
         const i18n = (key) => chrome.i18n?.getMessage(key) || key;
         nextButton.textContent = stepIndex === this.steps.length - 1 ? i18n('tutorialFinish') : i18n('tutorialNext');
 
-        // Remover highlight anterior
+        // Actualizar elemento resaltado
         document.querySelectorAll('.tutorial-highlight').forEach(el => {
             el.classList.remove('tutorial-highlight');
         });
 
-        // Añadir highlight al elemento objetivo
         if (step.target) {
             const targetElement = document.querySelector(step.target);
             if (targetElement) {
@@ -378,7 +370,7 @@ class TutorialManager {
 
     handleKeydown(event) {
         if (!this.isActive) return;
-        
+
         switch (event.key) {
             case 'Escape':
                 this.closeTutorial();
@@ -394,47 +386,39 @@ class TutorialManager {
 
     closeTutorial() {
         this.isActive = false;
-        
-        // Remover highlights
+
         document.querySelectorAll('.tutorial-highlight').forEach(el => {
             el.classList.remove('tutorial-highlight');
         });
 
-        // Remover overlay
         if (this.overlay) {
             this.overlay.remove();
             this.overlay = null;
         }
 
-        document.removeEventListener('keydown', this.handleKeydown.bind(this));
+        document.removeEventListener('keydown', this.boundKeydownHandler);
     }
 
     applyTranslations() {
         const i18n = (key) => chrome.i18n?.getMessage(key) || key;
-        
-        // Traducir botones
+
         const prevButton = this.overlay.querySelector('.tutorial-prev');
         const skipButton = this.overlay.querySelector('.tutorial-skip');
         const nextButton = this.overlay.querySelector('.tutorial-next');
-        
+        const closeButton = this.overlay.querySelector('.tutorial-close');
+
         if (prevButton) prevButton.textContent = i18n('tutorialPrevious');
         if (skipButton) skipButton.textContent = i18n('tutorialSkip');
         if (nextButton) nextButton.textContent = i18n('tutorialNext');
+        if (closeButton) closeButton.title = i18n('tutorialSkip');
     }
 
-    // Método para mostrar tutorial manual desde popup (sin verificar si ya se vio)
-    static showManualTutorial() {
-        const tutorial = new TutorialManager();
-        tutorial.showTutorialManual();
-    }
-    
-    // Método directo para mostrar tutorial (para usar desde popup.js)
+    // Mostrar tutorial manual (para usar desde popup.js)
     static showTutorial() {
         const tutorial = new TutorialManager();
         tutorial.showTutorialManual();
     }
 }
 
-// Exportar para uso en otros módulos
 window.TutorialManager = TutorialManager;
 }

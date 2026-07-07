@@ -1,13 +1,12 @@
 /**
  * 🎨 GESTOR DE INTERFAZ DE USUARIO
- * Este módulo contiene toda la UI original del content script
- * Incluyendo respiración guiada, transiciones y animaciones
+ * Respiración guiada, popup de reflexión, transiciones y animaciones.
  */
 
-// Función para añadir CSS de animaciones - ORIGINAL COMPLETA
+// Añadir CSS de animaciones compartidas (una sola vez)
 function addAnimationCSS() {
     if (document.getElementById('breathyAnimationCSS')) return;
-    
+
     const style = document.createElement('style');
     style.id = 'breathyAnimationCSS';
     style.textContent = `
@@ -15,17 +14,17 @@ function addAnimationCSS() {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.02); }
         }
-        
+
         @keyframes breatheIn {
             0% { transform: scale(1); }
             100% { transform: scale(1.1); }
         }
-        
+
         @keyframes breatheOut {
             0% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
-        
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); background: rgba(0, 0, 0, 0.7); }
             50% { transform: scale(1.05); background: rgba(0, 0, 0, 0.9); }
@@ -40,22 +39,22 @@ function addAnimationCSS() {
             0% { opacity: 1; transform: scale(1); }
             100% { opacity: 0; transform: scale(0.9); }
         }
-        
+
         /* Estilos para arrastrar el dragón */
         #breathyContainer:active {
             cursor: grabbing !important;
         }
-        
+
         #breathyContainer.dragging {
             cursor: grabbing !important;
             z-index: 10000;
             opacity: 0.9;
         }
-        
+
         #breathyContainer.dragging video {
             pointer-events: none;
         }
-        
+
         /* Transición suave al soltar */
         #breathyContainer:not(.dragging) {
             transition: all 0.3s ease;
@@ -64,31 +63,138 @@ function addAnimationCSS() {
     document.head.appendChild(style);
 }
 
-// Función para iniciar respiración guiada (para clics en el dragón) - ORIGINAL
+/**
+ * Popup de reflexión al entrar a un casino.
+ * Incluye dragón, mensaje, botón Salir y botón Empezar a jugar (con espera de 10s).
+ * @param {Function} onContinue - callback al pulsar "Empezar a jugar"
+ * @param {Function} onExit - callback al pulsar "Salir"
+ */
+function showReflectionPopup(onContinue, onExit) {
+    addAnimationCSS();
+
+    const existingOverlay = document.getElementById('reflectionOverlay');
+    if (existingOverlay) existingOverlay.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'reflectionOverlay';
+    overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.92); z-index: 100000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-family: 'Segoe UI', sans-serif; backdrop-filter: blur(7px);
+        animation: fadeIn 0.5s ease-in-out;
+    `;
+
+    // Dragón grande (video)
+    const dragonVideo = document.createElement('video');
+    dragonVideo.style.cssText = `
+        width: 220px; height: 220px; border-radius: 50%; object-fit: cover;
+        filter: drop-shadow(0 8px 30px rgba(0,0,0,0.5)) contrast(1.3) brightness(1.2) saturate(1.1);
+        margin-bottom: 30px;
+    `;
+    dragonVideo.autoplay = true;
+    dragonVideo.loop = true;
+    dragonVideo.muted = true;
+    dragonVideo.playsInline = true;
+    dragonVideo.src = chrome.runtime.getURL('assets/happy.webm');
+
+    // Mensaje principal
+    const message = document.createElement('div');
+    message.style.cssText = `
+        color: #fff; font-size: 2rem; font-weight: bold; text-align: center;
+        margin-bottom: 32px; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        max-width: 420px; line-height: 1.4;
+    `;
+    const reflectionTitle = document.createElement('span');
+    reflectionTitle.textContent = getI18nMessage('reflectionTitle', '¿Seguro que quieres entrar?');
+    const reflectionQuestions = document.createElement('span');
+    reflectionQuestions.style.cssText = 'font-size:1.1rem;font-weight:400;display:block;margin-top:8px;white-space:pre-line;';
+    reflectionQuestions.textContent = getI18nMessage('reflectionQuestions', '¿Cómo te sientes ahora mismo?\n¿Cuánto tiempo llevas jugando hoy?');
+    message.appendChild(reflectionTitle);
+    message.appendChild(reflectionQuestions);
+
+    // Contenedor de botones
+    const buttonRow = document.createElement('div');
+    buttonRow.style.cssText = 'display:flex;gap:24px;justify-content:center;flex-wrap:wrap;';
+
+    // Botón Empezar a jugar (habilitado tras 10 segundos)
+    const startPlayingLabel = getI18nMessage('startPlaying', 'Empezar a jugar');
+    const continueBtn = document.createElement('button');
+    continueBtn.textContent = `${startPlayingLabel} (10)`;
+    continueBtn.disabled = true;
+    continueBtn.style.cssText = `
+        background: linear-gradient(135deg,#3b82f6,#1d4ed8); color:#fff; border:none;
+        border-radius:50px; padding:16px 38px; font-size:1.2rem; font-weight:600;
+        cursor:not-allowed; opacity:0.7; box-shadow:0 4px 15px rgba(59,130,246,0.3); transition:all 0.3s;
+    `;
+    let seconds = 10;
+    const timer = setInterval(() => {
+        seconds--;
+        continueBtn.textContent = `${startPlayingLabel} (${seconds})`;
+        if (seconds <= 0) {
+            clearInterval(timer);
+            continueBtn.textContent = startPlayingLabel;
+            continueBtn.disabled = false;
+            continueBtn.style.cursor = 'pointer';
+            continueBtn.style.opacity = '1';
+        }
+    }, 1000);
+    continueBtn.onclick = () => {
+        if (continueBtn.disabled) return;
+        clearInterval(timer);
+        overlay.remove();
+        if (typeof onContinue === 'function') onContinue();
+    };
+
+    // Botón Salir
+    const exitBtn = document.createElement('button');
+    exitBtn.textContent = getI18nMessage('exit', 'Salir');
+    exitBtn.style.cssText = `
+        background: linear-gradient(135deg,#10b981,#059669); color:#fff; border:none;
+        border-radius:50px; padding:16px 38px; font-size:1.2rem; font-weight:600;
+        cursor:pointer; box-shadow:0 4px 15px rgba(16,185,129,0.3); transition:all 0.3s;
+    `;
+
+    // Mensaje de refuerzo al decidir no jugar (inicialmente oculto)
+    const stayMsg = document.createElement('div');
+    stayMsg.style.cssText = 'color:#a7f3d0; font-size:1.2rem; font-weight:500; margin-top:32px; max-width:400px; text-align:center; min-height:48px; white-space:pre-line;';
+
+    exitBtn.onclick = () => {
+        clearInterval(timer);
+        continueBtn.style.display = 'none';
+        exitBtn.style.display = 'none';
+        message.style.display = 'none';
+        stayMsg.textContent = getI18nMessage(
+            'reflectionStayMessage',
+            '¡Enhorabuena! Has priorizado tu bienestar.\nSi quieres, puedes cerrar esta pestaña.\n¡Eres un ejemplo de autocuidado!'
+        );
+        if (typeof onExit === 'function') onExit();
+    };
+
+    buttonRow.appendChild(continueBtn);
+    buttonRow.appendChild(exitBtn);
+    overlay.appendChild(dragonVideo);
+    overlay.appendChild(message);
+    overlay.appendChild(buttonRow);
+    overlay.appendChild(stayMsg);
+    document.body.appendChild(overlay);
+}
+
+// Iniciar respiración guiada (para clics en el dragón)
 function iniciarRespiracion(patron = '4-4') {
-    console.log('🚀 iniciarRespiracion llamada con patrón:', patron);
-    console.log('⚙️ Configuración actual breathingPattern:', currentSettings.breathingPattern);
-    
-    // Usar el patrón de la configuración actual si no se especifica uno
     const patronFinal = patron || currentSettings.breathingPattern || '4-4';
-    console.log('🎯 Patrón final a usar:', patronFinal);
-    
-    // Crear overlay de pantalla completa para respiración
     crearOverlayRespiracion(patronFinal);
 }
 
-// Función para crear overlay de respiración - ORIGINAL COMPLETA
+// Crear overlay de respiración de pantalla completa
 function crearOverlayRespiracion(patron = '4-4') {
-    // Asegurar que las animaciones CSS estén cargadas
     addAnimationCSS();
-    
-    // Eliminar overlay existente si existe
+
     const existingOverlay = document.getElementById('breathingOverlay');
     if (existingOverlay) {
         existingOverlay.remove();
     }
 
-    // Crear overlay de pantalla completa
     const overlay = document.createElement('div');
     overlay.id = 'breathingOverlay';
     overlay.style.cssText = `
@@ -107,7 +213,6 @@ function crearOverlayRespiracion(patron = '4-4') {
         backdrop-filter: blur(5px);
     `;
 
-    // Crear contenedor de dragón grande
     const dragonContainer = document.createElement('div');
     dragonContainer.style.cssText = `
         display: flex;
@@ -117,30 +222,27 @@ function crearOverlayRespiracion(patron = '4-4') {
         animation: fadeIn 0.5s ease-in-out;
     `;
 
-    // Video del dragón más grande
     const dragonVideo = document.createElement('video');
     dragonVideo.style.cssText = `
         width: 300px;
         height: 300px;
         border-radius: 50%;
         object-fit: cover;
-        filter: 
+        filter:
             drop-shadow(0 8px 30px rgba(0, 0, 0, 0.5))
-            contrast(1.3) 
+            contrast(1.3)
             brightness(1.2)
             saturate(1.1);
         transition: transform 0.3s ease;
     `;
-    
-    // Configurar video (usar breath.webm para respiración)
+
+    // breath.webm se reproduce una vez, sin loop
     dragonVideo.autoplay = true;
-    dragonVideo.loop = false; // Sin loop para breath - se reproduce una vez y se pausa
+    dragonVideo.loop = false;
     dragonVideo.muted = true;
     dragonVideo.playsInline = true;
-    const videoUrl = chrome.runtime.getURL('assets/breath.webm');
-    dragonVideo.src = videoUrl;
+    dragonVideo.src = chrome.runtime.getURL('assets/breath.webm');
 
-    // Texto de instrucciones
     const instructionText = document.createElement('div');
     instructionText.id = 'breathingInstruction';
     instructionText.style.cssText = `
@@ -153,7 +255,6 @@ function crearOverlayRespiracion(patron = '4-4') {
         transition: all 0.3s ease;
     `;
 
-    // Indicador de tiempo restante
     const timeIndicator = document.createElement('div');
     timeIndicator.id = 'timeIndicator';
     timeIndicator.style.cssText = `
@@ -165,7 +266,6 @@ function crearOverlayRespiracion(patron = '4-4') {
         display: none;
     `;
 
-    // Contenedor de botones
     const buttonContainer = document.createElement('div');
     buttonContainer.style.cssText = `
         margin-top: 30px;
@@ -198,7 +298,7 @@ function crearOverlayRespiracion(patron = '4-4') {
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         animation: pulseGlow 2s ease-in-out infinite;
     `;
@@ -231,7 +331,7 @@ function crearOverlayRespiracion(patron = '4-4') {
         opacity: 0.9;
     `;
 
-    // Añadir animación de pulso al CSS global si no existe
+    // Animación de pulso del botón de iniciar
     if (!document.getElementById('breathingButtonCSS')) {
         const buttonStyle = document.createElement('style');
         buttonStyle.id = 'breathingButtonCSS';
@@ -250,7 +350,7 @@ function crearOverlayRespiracion(patron = '4-4') {
         document.head.appendChild(buttonStyle);
     }
 
-    // Efectos hover del botón de iniciar
+    // Efectos hover
     playButton.addEventListener('mouseenter', () => {
         playButton.style.animation = 'none';
         playButton.style.transform = 'translateY(-2px) scale(1.05)';
@@ -262,7 +362,6 @@ function crearOverlayRespiracion(patron = '4-4') {
         playButton.style.boxShadow = '0 4px 20px rgba(74, 222, 128, 0.3)';
     });
 
-    // Efectos hover del botón de salir
     exitButton.addEventListener('mouseenter', () => {
         exitButton.style.transform = 'translateY(-2px) scale(1.05)';
         exitButton.style.boxShadow = '0 6px 25px rgba(107, 114, 128, 0.5)';
@@ -274,45 +373,32 @@ function crearOverlayRespiracion(patron = '4-4') {
         exitButton.style.opacity = '0.9';
     });
 
-    // Añadir botones al contenedor
     buttonContainer.appendChild(playButton);
     buttonContainer.appendChild(exitButton);
 
-    // Ensamblar elementos
     dragonContainer.appendChild(dragonVideo);
     dragonContainer.appendChild(instructionText);
     dragonContainer.appendChild(buttonContainer);
     dragonContainer.appendChild(timeIndicator);
     overlay.appendChild(dragonContainer);
 
-    // Agregar al DOM
     document.body.appendChild(overlay);
 
-    // Configurar estado inicial (todo pausado)
+    // Estado inicial (todo pausado)
     instructionText.textContent = getI18nMessage('prepareToBreath', 'Prepárate para respirar conmigo');
     instructionText.style.color = '#fff';
-    
-    // Pausar el video inicialmente
     dragonVideo.pause();
-    
-    // Configurar evento del botón de play
+
     playButton.addEventListener('click', () => {
-        // Ocultar botones y mostrar indicador de tiempo
         buttonContainer.style.display = 'none';
         timeIndicator.style.display = 'block';
-        
-        // Reproducir el video del dragón
-        dragonVideo.play().catch(e => {
-            console.warn('Error reproduciendo video de respiración:', e);
-        });
-        
-        // Iniciar sesión de respiración
+
+        dragonVideo.play().catch(() => {});
+
         iniciarSesionRespiracion(patron, overlay, dragonVideo, instructionText, timeIndicator);
     });
 
-    // Configurar evento del botón de salir
     exitButton.addEventListener('click', () => {
-        // Cerrar overlay con animación suave
         overlay.style.animation = 'fadeOut 0.5s ease-in-out';
         setTimeout(() => {
             overlay.remove();
@@ -320,49 +406,38 @@ function crearOverlayRespiracion(patron = '4-4') {
     });
 }
 
-// Función para iniciar sesión de respiración - ORIGINAL COMPLETA
+// Sesión de respiración guiada (1 minuto)
 function iniciarSesionRespiracion(patron, overlay, dragonVideo, instructionText, timeIndicator) {
-    console.log('🫁 Iniciando sesión de respiración con patrón:', patron);
-    
-    const patternParts = patron.split('-').map(n => parseInt(n));
-    let inhaleTime, holdTime, exhaleTime;
-    
-    // Determinar el tipo de patrón
-    if (patternParts.length === 2) {
-        // Patrón simple: inhalar-exhalar (ej: 4-4)
+    const patternParts = patron.split('-').map(n => parseInt(n, 10));
+    let inhaleTime = 4, holdTime = 0, exhaleTime = 4;
+
+    if (patternParts.length === 2 && patternParts.every(Number.isFinite)) {
         [inhaleTime, exhaleTime] = patternParts;
-        holdTime = 0;
-        console.log('🫁 Patrón simple detectado: inhalar', inhaleTime + 's, exhalar', exhaleTime + 's');
-    } else if (patternParts.length === 3) {
-        // Patrón completo: inhalar-retener-exhalar (ej: 4-7-8, 4-4-4)
+    } else if (patternParts.length === 3 && patternParts.every(Number.isFinite)) {
         [inhaleTime, holdTime, exhaleTime] = patternParts;
-        console.log('🫁 Patrón completo detectado: inhalar', inhaleTime + 's, mantener', holdTime + 's, exhalar', exhaleTime + 's');
     }
-    
+
     const sessionDuration = 60; // 1 minuto
     let remainingTime = sessionDuration;
-    let currentPhase = 'inhale'; // 'inhale', 'hold', 'exhale'
+    let currentPhase = 'inhale';
     let cycleTimeRemaining = inhaleTime;
 
-    // Actualizar indicador de tiempo
     function updateTimeIndicator() {
         const minutes = Math.floor(remainingTime / 60);
         const seconds = remainingTime % 60;
         timeIndicator.textContent = `${getI18nMessage('timeRemaining', 'Tiempo restante:')} ${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // Función de respiración
     function breatheCycle() {
         if (currentPhase === 'inhale') {
             instructionText.textContent = getI18nMessage('inhaleDeep', 'Inhala profundo');
             instructionText.style.color = '#4ade80';
-            
-            // Animación gradual de expansión durante la inhalación
+
             dragonVideo.style.transition = `transform ${inhaleTime}s ease-in-out`;
             dragonVideo.style.transform = 'scale(1.3)';
             dragonVideo.style.filter = `
                 drop-shadow(0 8px 30px rgba(74, 222, 128, 0.3))
-                contrast(1.3) 
+                contrast(1.3)
                 brightness(1.3)
                 saturate(1.2)
             `;
@@ -370,13 +445,12 @@ function iniciarSesionRespiracion(patron, overlay, dragonVideo, instructionText,
         } else if (currentPhase === 'hold') {
             instructionText.textContent = getI18nMessage('holdBreath', 'Mantén');
             instructionText.style.color = '#a78bfa';
-            
-            // Mantener el tamaño expandido sin transición
+
             dragonVideo.style.transition = 'none';
             dragonVideo.style.transform = 'scale(1.3)';
             dragonVideo.style.filter = `
                 drop-shadow(0 8px 30px rgba(167, 139, 250, 0.3))
-                contrast(1.2) 
+                contrast(1.2)
                 brightness(1.2)
                 saturate(1.1)
             `;
@@ -384,13 +458,12 @@ function iniciarSesionRespiracion(patron, overlay, dragonVideo, instructionText,
         } else if (currentPhase === 'exhale') {
             instructionText.textContent = getI18nMessage('exhaleSlow', 'Exhala lento');
             instructionText.style.color = '#fbbf24';
-            
-            // Animación gradual de contracción durante la exhalación
+
             dragonVideo.style.transition = `transform ${exhaleTime}s ease-in-out`;
             dragonVideo.style.transform = 'scale(1.0)';
             dragonVideo.style.filter = `
                 drop-shadow(0 8px 30px rgba(251, 191, 36, 0.3))
-                contrast(1.3) 
+                contrast(1.3)
                 brightness(1.1)
                 saturate(1.1)
             `;
@@ -398,13 +471,11 @@ function iniciarSesionRespiracion(patron, overlay, dragonVideo, instructionText,
         }
     }
 
-    // Timer principal
     const mainTimer = setInterval(() => {
         remainingTime--;
         cycleTimeRemaining--;
         updateTimeIndicator();
 
-        // Verificar si la sesión debe terminar
         if (remainingTime <= 0) {
             clearInterval(mainTimer);
             finalizarSesionRespiracion(overlay);
@@ -412,23 +483,17 @@ function iniciarSesionRespiracion(patron, overlay, dragonVideo, instructionText,
         }
 
         if (cycleTimeRemaining <= 0) {
-            // Avanzar a la siguiente fase
             if (currentPhase === 'inhale') {
-                if (holdTime > 0) {
-                    currentPhase = 'hold';
-                } else {
-                    currentPhase = 'exhale';
-                }
+                currentPhase = holdTime > 0 ? 'hold' : 'exhale';
             } else if (currentPhase === 'hold') {
                 currentPhase = 'exhale';
-            } else if (currentPhase === 'exhale') {
+            } else {
                 currentPhase = 'inhale';
             }
             breatheCycle();
         }
     }, 1000);
 
-    // Inicializar
     updateTimeIndicator();
     breatheCycle();
 
@@ -436,8 +501,7 @@ function iniciarSesionRespiracion(patron, overlay, dragonVideo, instructionText,
     const escapeHandler = (e) => {
         if (e.key === 'Escape') {
             clearInterval(mainTimer);
-            
-            // Resetear el video al primer fotograma antes de finalizar
+
             if (dragonVideo) {
                 dragonVideo.currentTime = 0;
                 dragonVideo.pause();
@@ -445,12 +509,12 @@ function iniciarSesionRespiracion(patron, overlay, dragonVideo, instructionText,
                 dragonVideo.style.transform = 'scale(1.0)';
                 dragonVideo.style.filter = `
                     drop-shadow(0 8px 30px rgba(0, 0, 0, 0.5))
-                    contrast(1.3) 
+                    contrast(1.3)
                     brightness(1.2)
                     saturate(1.1)
                 `;
             }
-            
+
             finalizarSesionRespiracion(overlay);
             document.removeEventListener('keydown', escapeHandler);
         }
@@ -458,218 +522,198 @@ function iniciarSesionRespiracion(patron, overlay, dragonVideo, instructionText,
     document.addEventListener('keydown', escapeHandler);
 }
 
-// Función para finalizar sesión de respiración - ORIGINAL COMPLETA
+// Pantalla final de la sesión de respiración con reflexión
 function finalizarSesionRespiracion(overlay) {
-    // Resetear el video al primer fotograma y pausarlo
     const dragonVideo = overlay.querySelector('video');
     if (dragonVideo) {
         dragonVideo.currentTime = 0;
         dragonVideo.pause();
-        // Resetear transformaciones y filtros
         dragonVideo.style.transition = 'all 0.5s ease';
         dragonVideo.style.transform = 'scale(1.0)';
         dragonVideo.style.filter = `
             drop-shadow(0 8px 30px rgba(0, 0, 0, 0.5))
-            contrast(1.3) 
+            contrast(1.3)
             brightness(1.2)
             saturate(1.1)
         `;
     }
 
-    // Mostrar mensaje de finalización con opciones de reflexión
     const instruction = overlay.querySelector('#breathingInstruction');
     const timeIndicator = overlay.querySelector('#timeIndicator');
-    
-    if (instruction && timeIndicator) {
-        instruction.textContent = getI18nMessage('excellentFeelBetter', '¡Excelente! Te sientes mejor 🧘‍♀️');
-        instruction.style.color = '#4ade80';
-        timeIndicator.textContent = getI18nMessage('sessionCompleted', 'Sesión completada');
-        
-        // Crear contenedor para la reflexión
-        const reflectionContainer = document.createElement('div');
-        reflectionContainer.style.cssText = `
-            margin-top: 40px;
-            text-align: center;
-            animation: fadeIn 0.5s ease-in-out 1s both;
-        `;
 
-        // Mensaje de reflexión
-        const reflectionText = document.createElement('div');
-        reflectionText.style.cssText = `
-            color: #fff;
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 30px;
-            line-height: 1.4;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-        `;
-        reflectionText.innerHTML = getI18nMessage('reflectionPrompt', 'Ahora que has parado a respirar,<br><strong>piensa tranquilamente...</strong><br>¿De verdad deseas seguir jugando?').replace(/\n/g, '<br>');
-
-        // Contenedor de botones
-        const buttonContainer = document.createElement('div');
-        buttonContainer.style.cssText = `
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        `;
-
-        // Botón de continuar jugando
-        const continueButton = document.createElement('button');
-        continueButton.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            ${getI18nMessage('continueGambling', 'Gracias, pero deseo seguir')}
-        `;
-        continueButton.style.cssText = `
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 12px 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            font-family: 'Segoe UI', sans-serif;
-        `;
-
-        // Botón de cerrar pestaña
-        const closeButton = document.createElement('button');
-        closeButton.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-            </svg>
-            ${getI18nMessage('stopGambling', 'Mejor lo dejo por ahora')}
-        `;
-        closeButton.style.cssText = `
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 12px 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            font-family: 'Segoe UI', sans-serif;
-        `;
-
-        // Efectos hover para los botones
-        [continueButton, closeButton].forEach(button => {
-            button.addEventListener('mouseenter', () => {
-                button.style.transform = 'translateY(-2px) scale(1.05)';
-                button.style.boxShadow = button === continueButton ? 
-                    '0 6px 20px rgba(59, 130, 246, 0.4)' : 
-                    '0 6px 20px rgba(16, 185, 129, 0.4)';
-            });
-            button.addEventListener('mouseleave', () => {
-                button.style.transform = 'translateY(0) scale(1)';
-                button.style.boxShadow = button === continueButton ? 
-                    '0 4px 15px rgba(59, 130, 246, 0.3)' : 
-                    '0 4px 15px rgba(16, 185, 129, 0.3)';
-            });
-        });
-
-        // Eventos de los botones
-        continueButton.addEventListener('click', () => {
-            // Cerrar overlay y continuar jugando
-            overlay.style.animation = 'fadeOut 0.5s ease-in-out';
-            setTimeout(() => {
-                overlay.remove();
-            }, 500);
-        });
-
-        closeButton.addEventListener('click', () => {
-            // Mostrar mensaje de despedida directo
-            reflectionText.innerHTML = `
-                ¡Gracias por cuidarte! 💚<br>
-                <span style="font-size: 18px; color: #fbbf24;">
-                    Por favor, cierra esta pestaña manualmente<br>
-                    para completar tu momento de cuidado personal
-                </span><br>
-                <span style="font-size: 16px; color: #ccc; margin-top: 10px; display: block;">
-                    Presiona Ctrl+W o haz clic en la X de la pestaña
-                </span>
-            `;
-            buttonContainer.style.display = 'none';
-            
-            // Añadir el botón de cambio de opinión después de un momento
-            setTimeout(() => {
-                const backButton = document.createElement('button');
-                backButton.innerHTML = 'He cambiado de opinión, volver al juego';
-                backButton.style.cssText = `
-                    background: rgba(255, 255, 255, 0.1);
-                    color: #ccc;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 25px;
-                    padding: 8px 20px;
-                    font-size: 14px;
-                    cursor: pointer;
-                    margin-top: 20px;
-                    transition: all 0.3s ease;
-                    font-family: 'Segoe UI', sans-serif;
-                `;
-                
-                backButton.addEventListener('mouseenter', () => {
-                    backButton.style.background = 'rgba(255, 255, 255, 0.2)';
-                    backButton.style.color = '#fff';
-                });
-                
-                backButton.addEventListener('mouseleave', () => {
-                    backButton.style.background = 'rgba(255, 255, 255, 0.1)';
-                    backButton.style.color = '#ccc';
-                });
-                
-                backButton.addEventListener('click', () => {
-                    overlay.style.animation = 'fadeOut 0.5s ease-in-out';
-                    setTimeout(() => {
-                        overlay.remove();
-                    }, 500);
-                });
-                
-                reflectionContainer.appendChild(backButton);
-            }, 1000);
-        });
-
-        // Ensamblar elementos de reflexión
-        buttonContainer.appendChild(continueButton);
-        buttonContainer.appendChild(closeButton);
-        reflectionContainer.appendChild(reflectionText);
-        reflectionContainer.appendChild(buttonContainer);
-
-        // Añadir al overlay
-        const dragonContainer = overlay.querySelector('div');
-        dragonContainer.appendChild(reflectionContainer);
-        
-    } else {
-        // Fallback si no se encuentran los elementos
+    if (!instruction || !timeIndicator) {
         overlay.remove();
+        return;
     }
+
+    instruction.textContent = getI18nMessage('excellentFeelBetter', '¡Excelente! Te sientes mejor 🧘‍♀️');
+    instruction.style.color = '#4ade80';
+    timeIndicator.textContent = getI18nMessage('sessionCompleted', 'Sesión completada');
+
+    const reflectionContainer = document.createElement('div');
+    reflectionContainer.style.cssText = `
+        margin-top: 40px;
+        text-align: center;
+        animation: fadeIn 0.5s ease-in-out 1s both;
+    `;
+
+    const reflectionText = document.createElement('div');
+    reflectionText.style.cssText = `
+        color: #fff;
+        font-size: 20px;
+        font-weight: 500;
+        margin-bottom: 30px;
+        line-height: 1.4;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        white-space: pre-line;
+    `;
+    reflectionText.textContent = getI18nMessage('reflectionPrompt', 'Ahora que has parado a respirar,\npiensa tranquilamente...\n¿De verdad deseas seguir jugando?');
+
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    `;
+
+    // Botón de continuar jugando
+    const continueButton = document.createElement('button');
+    continueButton.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        ${getI18nMessage('continueGambling', 'Gracias, pero deseo seguir')}
+    `;
+    continueButton.style.cssText = `
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        font-family: 'Segoe UI', sans-serif;
+    `;
+
+    // Botón de dejarlo por ahora
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+        ${getI18nMessage('stopGambling', 'Mejor lo dejo por ahora')}
+    `;
+    closeButton.style.cssText = `
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        font-family: 'Segoe UI', sans-serif;
+    `;
+
+    [continueButton, closeButton].forEach(button => {
+        button.addEventListener('mouseenter', () => {
+            button.style.transform = 'translateY(-2px) scale(1.05)';
+            button.style.boxShadow = button === continueButton ?
+                '0 6px 20px rgba(59, 130, 246, 0.4)' :
+                '0 6px 20px rgba(16, 185, 129, 0.4)';
+        });
+        button.addEventListener('mouseleave', () => {
+            button.style.transform = 'translateY(0) scale(1)';
+            button.style.boxShadow = button === continueButton ?
+                '0 4px 15px rgba(59, 130, 246, 0.3)' :
+                '0 4px 15px rgba(16, 185, 129, 0.3)';
+        });
+    });
+
+    continueButton.addEventListener('click', () => {
+        overlay.style.animation = 'fadeOut 0.5s ease-in-out';
+        setTimeout(() => {
+            overlay.remove();
+        }, 500);
+    });
+
+    closeButton.addEventListener('click', () => {
+        reflectionText.textContent = [
+            getI18nMessage('thanksForSelfCare', '¡Gracias por cuidarte! 💚'),
+            getI18nMessage('closeTabManually', 'Por favor, cierra esta pestaña para completar tu momento de cuidado personal'),
+            getI18nMessage('closeTabShortcut', 'Presiona Ctrl+W o haz clic en la X de la pestaña')
+        ].join('\n');
+        buttonContainer.style.display = 'none';
+
+        // Botón de cambio de opinión
+        setTimeout(() => {
+            const backButton = document.createElement('button');
+            backButton.textContent = getI18nMessage('changedMyMind', 'He cambiado de opinión, volver al juego');
+            backButton.style.cssText = `
+                background: rgba(255, 255, 255, 0.1);
+                color: #ccc;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 25px;
+                padding: 8px 20px;
+                font-size: 14px;
+                cursor: pointer;
+                margin-top: 20px;
+                transition: all 0.3s ease;
+                font-family: 'Segoe UI', sans-serif;
+            `;
+
+            backButton.addEventListener('mouseenter', () => {
+                backButton.style.background = 'rgba(255, 255, 255, 0.2)';
+                backButton.style.color = '#fff';
+            });
+
+            backButton.addEventListener('mouseleave', () => {
+                backButton.style.background = 'rgba(255, 255, 255, 0.1)';
+                backButton.style.color = '#ccc';
+            });
+
+            backButton.addEventListener('click', () => {
+                overlay.style.animation = 'fadeOut 0.5s ease-in-out';
+                setTimeout(() => {
+                    overlay.remove();
+                }, 500);
+            });
+
+            reflectionContainer.appendChild(backButton);
+        }, 1000);
+    });
+
+    buttonContainer.appendChild(continueButton);
+    buttonContainer.appendChild(closeButton);
+    reflectionContainer.appendChild(reflectionText);
+    reflectionContainer.appendChild(buttonContainer);
+
+    const dragonContainer = overlay.querySelector('div');
+    dragonContainer.appendChild(reflectionContainer);
 }
 
-// Función para mostrar transición de fase - ORIGINAL COMPLETA
+// Pantalla de transición al cambiar de fase (tired/angry)
 function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
-    console.log(`🎭 *** EJECUTANDO TRANSICIÓN DE FASE ***: ${estadoAnterior} → ${nuevoEstado}`);
-    console.log(`🎭 Creando overlay de pantalla completa para transición...`);
-    
-    // Eliminar overlay existente si existe
+    addAnimationCSS();
+
     const existingOverlay = document.getElementById('phaseTransitionOverlay');
     if (existingOverlay) {
         existingOverlay.remove();
     }
 
-    // Crear overlay de pantalla completa
     const overlay = document.createElement('div');
     overlay.id = 'phaseTransitionOverlay';
     overlay.style.cssText = `
@@ -689,19 +733,12 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
         animation: fadeIn 0.5s ease-in-out;
     `;
 
-    // Obtener configuración del estado desde constants.js
-    const dragonState = DRAGON_STATES[nuevoEstado] || DRAGON_STATES['happy']; // Fallback a happy si no existe
-    
-    // Usar mensajes de UI_TEXTS y colores de DRAGON_STATES (ejecutar función si es necesario)
-    const mensaje = typeof UI_TEXTS.dragonMessages[nuevoEstado] === 'function' 
-        ? UI_TEXTS.dragonMessages[nuevoEstado]() 
-        : UI_TEXTS.dragonMessages[nuevoEstado] || 
-          (typeof UI_TEXTS.dragonMessages['happy'] === 'function' 
-            ? UI_TEXTS.dragonMessages['happy']() 
-            : UI_TEXTS.dragonMessages['happy']);
+    const dragonState = DRAGON_STATES[nuevoEstado] || DRAGON_STATES['happy'];
+    const mensaje = typeof UI_TEXTS.dragonMessages[nuevoEstado] === 'function'
+        ? UI_TEXTS.dragonMessages[nuevoEstado]()
+        : UI_TEXTS.dragonMessages[nuevoEstado];
     const colorFondo = dragonState.color;
 
-    // Crear contenedor principal
     const container = document.createElement('div');
     container.style.cssText = `
         display: flex;
@@ -713,16 +750,15 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
         padding: 40px;
     `;
 
-    // Video del dragón grande centrado
     const dragonVideo = document.createElement('video');
     dragonVideo.style.cssText = `
         width: 350px;
         height: 350px;
         border-radius: 50%;
         object-fit: cover;
-        filter: 
+        filter:
             drop-shadow(0 12px 40px rgba(0, 0, 0, 0.6))
-            contrast(1.4) 
+            contrast(1.4)
             brightness(1.3)
             saturate(1.2);
         transition: all 0.5s ease;
@@ -730,14 +766,13 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
         border: 5px solid ${colorFondo};
         box-shadow: 0 0 30px ${colorFondo}50;
     `;
-    
+
     dragonVideo.autoplay = true;
     dragonVideo.loop = true;
     dragonVideo.muted = true;
     dragonVideo.playsInline = true;
     dragonVideo.src = chrome.runtime.getURL(dragonState.video);
 
-    // Mensaje principal
     const mensajePrincipal = document.createElement('div');
     mensajePrincipal.style.cssText = `
         color: white;
@@ -751,7 +786,6 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
     `;
     mensajePrincipal.textContent = mensaje;
 
-    // Contenedor de botones
     const botonesContainer = document.createElement('div');
     botonesContainer.style.cssText = `
         display: flex;
@@ -842,7 +876,6 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
         `;
     }
 
-    // Efectos hover para los botones
     [btnRespiro, btnSalir, btnSeguir].filter(btn => btn).forEach(btn => {
         btn.addEventListener('mouseenter', () => {
             btn.style.transform = 'translateY(-3px) scale(1.05)';
@@ -854,33 +887,35 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
         });
     });
 
-    // Event listeners
     btnRespiro.addEventListener('click', () => {
         overlay.remove();
         iniciarRespiracion(currentSettings.breathingPattern);
     });
 
     btnSalir.addEventListener('click', () => {
-        // Mostrar mensaje de despedida y sugerir cerrar pestaña
         mensajePrincipal.textContent = getI18nMessage('wellDoneBreakTime', '¡Bien hecho! Es hora de tomar un descanso 👋');
         mensajePrincipal.style.color = '#4ade80';
-        
-        botonesContainer.innerHTML = `
-            <div style="
-                background: rgba(255,255,255,0.1);
-                border-radius: 15px;
-                padding: 20px;
-                color: #fff;
-                text-align: center;
-                font-size: 16px;
-                line-height: 1.5;
-                max-width: 400px;
-            ">
-                💡 <strong>${getI18nMessage('suggestionLabel', 'Sugerencia:')}</strong><br>
-                ${getI18nMessage('closeTabSuggestion', 'Cierra esta pestaña y toma un descanso.')}<br>
-                ${getI18nMessage('wellbeingImportant', 'Tu bienestar es lo más importante.')}
-            </div>
+
+        botonesContainer.textContent = '';
+        const suggestion = document.createElement('div');
+        suggestion.style.cssText = `
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            color: #fff;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.5;
+            max-width: 400px;
         `;
+        const suggestionLabel = document.createElement('strong');
+        suggestionLabel.textContent = `💡 ${getI18nMessage('suggestionLabel', 'Sugerencia:')}`;
+        const suggestionText = document.createElement('span');
+        suggestionText.style.cssText = 'display:block;margin-top:6px;white-space:pre-line;';
+        suggestionText.textContent = `${getI18nMessage('closeTabSuggestion', 'Cierra esta pestaña y toma un descanso.')}\n${getI18nMessage('wellbeingImportant', 'Tu bienestar es lo más importante.')}`;
+        suggestion.appendChild(suggestionLabel);
+        suggestion.appendChild(suggestionText);
+        botonesContainer.appendChild(suggestion);
 
         setTimeout(() => {
             overlay.style.animation = 'fadeOut 0.5s ease-out forwards';
@@ -899,20 +934,18 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
         });
     }
 
-    // Ensamblar elementos
     container.appendChild(dragonVideo);
     container.appendChild(mensajePrincipal);
-    
+
     botonesContainer.appendChild(btnRespiro);
     botonesContainer.appendChild(btnSalir);
     if (btnSeguir) {
         botonesContainer.appendChild(btnSeguir);
     }
-    
+
     container.appendChild(botonesContainer);
     overlay.appendChild(container);
 
-    // Agregar al DOM
     document.body.appendChild(overlay);
 
     // Permitir cerrar con ESC
@@ -929,47 +962,44 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
 }
 
 /**
- * Función para mostrar reality checks usando la misma UI que los mensajes del dragón
- * @param {string} mensaje - El mensaje del reality check a mostrar
+ * Mostrar un reality check en el bocadillo del dragón
+ * @param {string} mensaje - El mensaje del reality check
  */
 function mostrarRealityCheck(mensaje) {
     const speechBubble = document.getElementById('textoResp');
     const speechText = speechBubble?.querySelector('.speech-text');
     const showSpeechButton = document.querySelector('.show-speech-button');
-    
-    if (speechBubble && speechText) {
-        // Si el bocadillo está oculto, mostrarlo automáticamente para el reality check
-        const estabaCerrado = speechBubble.classList.contains('hidden');
-        if (estabaCerrado) {
-            speechBubble.classList.remove('hidden');
-            if (showSpeechButton) {
-                showSpeechButton.style.display = 'none';
-            }
-            localStorage.setItem('dragonSpeechHidden', 'false');
-            console.log('🔔 Bocadillo abierto automáticamente para reality check');
+
+    if (!speechBubble || !speechText) return;
+
+    // Si el bocadillo está oculto, mostrarlo para el reality check
+    if (speechBubble.classList.contains('hidden')) {
+        speechBubble.classList.remove('hidden');
+        if (showSpeechButton) {
+            showSpeechButton.style.display = 'none';
         }
-        
-        // Actualizar el mensaje con el reality check
-        speechText.textContent = mensaje;
-        
-        // Aplicar estilo especial para reality checks
-        speechBubble.className = speechBubble.className.replace(/state-\w+/, 'state-reality-check');
-        
-        // Reiniciar animación de habla para dar efecto de "nueva conversación"
-        speechBubble.classList.remove('speaking');
-        speechBubble.classList.add('reality-check-highlight');
-        
-        setTimeout(() => {
-            speechBubble.classList.add('speaking');
-        }, 50);
-        
-        // Remover el highlight después de 3 segundos, pero mantener el mensaje
-        setTimeout(() => {
-            speechBubble.classList.remove('reality-check-highlight');
-        }, 3000);
-        
-        console.log('🔔 Reality check mostrado:', mensaje);
-    } else {
-        console.warn('❌ No se pudo mostrar reality check - elementos DOM no encontrados');
+        try {
+            localStorage.setItem('dragonSpeechHidden', 'false');
+        } catch (error) { /* storage bloqueado por el sitio */ }
     }
+
+    speechText.textContent = mensaje;
+    speechBubble.className = speechBubble.className.replace(/state-\w+/, 'state-reality-check');
+
+    speechBubble.classList.remove('speaking');
+    speechBubble.classList.add('reality-check-highlight');
+
+    setTimeout(() => {
+        speechBubble.classList.add('speaking');
+    }, 50);
+
+    setTimeout(() => {
+        speechBubble.classList.remove('reality-check-highlight');
+    }, 3000);
 }
+
+// Exports globales para el content script principal
+window.showReflectionPopup = showReflectionPopup;
+window.addAnimationCSS = addAnimationCSS;
+window.iniciarRespiracion = iniciarRespiracion;
+window.mostrarTransicionFase = mostrarTransicionFase;
