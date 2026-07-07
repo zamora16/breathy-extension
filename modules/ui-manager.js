@@ -180,6 +180,126 @@ function showReflectionPopup(onContinue, onExit) {
     document.body.appendChild(overlay);
 }
 
+/**
+ * Caja con enlaces a recursos de ayuda profesional (localizados vía i18n).
+ */
+function createHelpResourcesBox() {
+    const box = document.createElement('div');
+    box.style.cssText = `
+        margin-top: 28px; padding: 16px 24px; border-radius: 14px;
+        background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+        text-align: center; max-width: 420px;
+    `;
+
+    const title = document.createElement('div');
+    title.style.cssText = 'color:#a7f3d0; font-size:0.95rem; font-weight:600; margin-bottom:10px;';
+    title.textContent = getI18nMessage('needHelp', '¿Necesitas ayuda?');
+    box.appendChild(title);
+
+    HELP_RESOURCE_KEYS.forEach(({ nameKey, urlKey }) => {
+        const name = getI18nMessage(nameKey, '');
+        const url = getI18nMessage(urlKey, '');
+        if (!name || !url) return;
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = name;
+        link.style.cssText = `
+            display:block; color:#93c5fd; font-size:0.9rem; margin:4px 0;
+            text-decoration:underline; cursor:pointer;
+        `;
+        box.appendChild(link);
+    });
+
+    return box;
+}
+
+/**
+ * Overlay de bloqueo mientras la pausa de emergencia está activa.
+ * No se puede cerrar; muestra el tiempo restante y recursos de ayuda.
+ * @param {Number} untilTs - timestamp (ms) de fin de la pausa
+ */
+function showPauseBlockOverlay(untilTs) {
+    addAnimationCSS();
+
+    const existingOverlay = document.getElementById('pauseBlockOverlay');
+    if (existingOverlay) existingOverlay.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'pauseBlockOverlay';
+    overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(10,12,20,0.97); z-index: 2147483000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-family: 'Segoe UI', sans-serif; backdrop-filter: blur(10px);
+        animation: fadeIn 0.5s ease-in-out;
+    `;
+
+    const dragonVideo = document.createElement('video');
+    dragonVideo.style.cssText = `
+        width: 200px; height: 200px; border-radius: 50%; object-fit: cover;
+        filter: drop-shadow(0 8px 30px rgba(0,0,0,0.5)) contrast(1.3) brightness(1.2) saturate(1.1);
+        margin-bottom: 26px;
+    `;
+    dragonVideo.autoplay = true;
+    dragonVideo.loop = true;
+    dragonVideo.muted = true;
+    dragonVideo.playsInline = true;
+    dragonVideo.src = chrome.runtime.getURL('assets/happy.webm');
+
+    const title = document.createElement('div');
+    title.style.cssText = `
+        color: #fff; font-size: 1.9rem; font-weight: bold; text-align: center;
+        margin-bottom: 14px; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    `;
+    title.textContent = getI18nMessage('pauseBlockTitle', 'Estás en pausa');
+
+    const message = document.createElement('div');
+    message.style.cssText = `
+        color: #d1d5db; font-size: 1.1rem; text-align: center; max-width: 440px;
+        line-height: 1.5; margin-bottom: 20px; white-space: pre-line;
+    `;
+    message.textContent = getI18nMessage(
+        'pauseBlockMessage',
+        'Decidiste tomarte un descanso del juego.\nCuida de ti: este bloqueo termina en'
+    );
+
+    const countdown = document.createElement('div');
+    countdown.style.cssText = `
+        color: #a7f3d0; font-size: 1.6rem; font-weight: 600; text-align: center;
+        letter-spacing: 0.02em;
+    `;
+
+    const hoursLabel = getI18nMessage('hoursShort', 'h');
+    const minutesLabel = getI18nMessage('minutesShort', 'min');
+
+    const updateCountdown = () => {
+        const remaining = untilTs - Date.now();
+        if (remaining <= 0) {
+            clearInterval(countdownTimer);
+            window.location.reload();
+            return;
+        }
+        const totalMinutes = Math.ceil(remaining / 60000);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        countdown.textContent = hours > 0
+            ? `${hours} ${hoursLabel} ${minutes} ${minutesLabel}`
+            : `${minutes} ${minutesLabel}`;
+    };
+    const countdownTimer = setInterval(updateCountdown, 30000);
+    updateCountdown();
+
+    overlay.appendChild(dragonVideo);
+    overlay.appendChild(title);
+    overlay.appendChild(message);
+    overlay.appendChild(countdown);
+    overlay.appendChild(createHelpResourcesBox());
+    document.body.appendChild(overlay);
+}
+
 // Iniciar respiración guiada (para clics en el dragón)
 function iniciarRespiracion(patron = '4-4') {
     const patronFinal = patron || currentSettings.breathingPattern || '4-4';
@@ -915,6 +1035,27 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
         suggestionText.textContent = `${getI18nMessage('closeTabSuggestion', 'Cierra esta pestaña y toma un descanso.')}\n${getI18nMessage('wellbeingImportant', 'Tu bienestar es lo más importante.')}`;
         suggestion.appendChild(suggestionLabel);
         suggestion.appendChild(suggestionText);
+
+        // Ofrecer la pausa de emergencia en el momento de mayor intención
+        const pauseBtn = document.createElement('button');
+        pauseBtn.textContent = getI18nMessage('blockCasinos24h', 'Bloquear casinos durante 24 h');
+        pauseBtn.style.cssText = `
+            display:block; margin: 16px auto 0; background: linear-gradient(135deg,#ef4444,#dc2626);
+            color:#fff; border:none; border-radius:50px; padding:12px 26px;
+            font-size:15px; font-weight:600; cursor:pointer;
+            box-shadow:0 4px 15px rgba(239,68,68,0.35); transition:all 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        `;
+        pauseBtn.addEventListener('click', () => {
+            pauseBtn.disabled = true;
+            try {
+                chrome.storage.sync.set({ [EMERGENCY_PAUSE_KEY]: Date.now() + 24 * 60 * 60 * 1000 });
+                // El listener de la pausa mostrará el overlay de bloqueo
+            } catch (error) {
+                pauseBtn.disabled = false;
+            }
+        });
+        suggestion.appendChild(pauseBtn);
         botonesContainer.appendChild(suggestion);
 
         setTimeout(() => {
@@ -922,7 +1063,7 @@ function mostrarTransicionFase(nuevoEstado, estadoAnterior) {
             setTimeout(() => {
                 overlay.remove();
             }, 500);
-        }, 4000);
+        }, 12000);
     });
 
     if (btnSeguir) {
@@ -1000,6 +1141,7 @@ function mostrarRealityCheck(mensaje) {
 
 // Exports globales para el content script principal
 window.showReflectionPopup = showReflectionPopup;
+window.showPauseBlockOverlay = showPauseBlockOverlay;
 window.addAnimationCSS = addAnimationCSS;
 window.iniciarRespiracion = iniciarRespiracion;
 window.mostrarTransicionFase = mostrarTransicionFase;

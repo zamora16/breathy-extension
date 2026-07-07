@@ -22,16 +22,25 @@ loadConfiguration(() => {
     const shouldActivate = detectedByFunction || gameWindow;
 
     if (shouldActivate) {
-        chrome.storage.local.get([CASINO_SESSION_KEY], (result) => {
-            if (!result[CASINO_SESSION_KEY]) {
-                // Primera entrada de la sesión: mostrar popup de reflexión
-                window.showReflectionPopup(
-                    () => markReflectionShown(activateOnCasino),
-                    () => markReflectionShown()
-                );
-            } else {
-                activateOnCasino();
+        // Con la pausa de emergencia activa, mostrar el bloqueo y no activar nada más
+        chrome.storage.sync.get([EMERGENCY_PAUSE_KEY], (pauseResult) => {
+            const pausedUntil = pauseResult?.[EMERGENCY_PAUSE_KEY] || 0;
+            if (Date.now() < pausedUntil) {
+                window.showPauseBlockOverlay(pausedUntil);
+                return;
             }
+
+            chrome.storage.local.get([CASINO_SESSION_KEY], (result) => {
+                if (!result[CASINO_SESSION_KEY]) {
+                    // Primera entrada de la sesión: mostrar popup de reflexión
+                    window.showReflectionPopup(
+                        () => markReflectionShown(activateOnCasino),
+                        () => markReflectionShown()
+                    );
+                } else {
+                    activateOnCasino();
+                }
+            });
         });
     }
 
@@ -44,9 +53,36 @@ loadConfiguration(() => {
     // Listener para cambios de respiración continua desde el popup
     setupContinuousBreathingListener();
 
+    // Listener para la activación de la pausa de emergencia
+    setupEmergencyPauseListener(shouldActivate);
+
     // Tutorial automático en sitios de casino (solo la primera vez)
     initializeTutorial(shouldActivate);
 });
+
+/**
+ * Si la pausa de emergencia se activa mientras hay un casino abierto,
+ * aplicar el bloqueo inmediatamente.
+ */
+function setupEmergencyPauseListener(isCasinoSite) {
+    if (!isCasinoSite) return;
+
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area !== 'sync' || !changes[EMERGENCY_PAUSE_KEY]) return;
+
+        const pausedUntil = changes[EMERGENCY_PAUSE_KEY].newValue || 0;
+        if (Date.now() < pausedUntil) {
+            cleanupExtension();
+            const reflection = document.getElementById('reflectionOverlay');
+            if (reflection) reflection.remove();
+            const transition = document.getElementById('phaseTransitionOverlay');
+            if (transition) transition.remove();
+            const breathing = document.getElementById('breathingOverlay');
+            if (breathing) breathing.remove();
+            window.showPauseBlockOverlay(pausedUntil);
+        }
+    });
+}
 
 /**
  * Guardar la marca de popup mostrado y continuar con el flujo indicado.

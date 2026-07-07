@@ -22,8 +22,16 @@ function createEmptyState() {
         lastRealityCheckMinute: 0,
         realityCheckIndex: 0,
         remindersShown: [],
+        nightNoticeShown: false,
+        dailyLimitNotifiedMinute: 0,
         lastUpdateSent: { baseDomain: null, duration: null, dragonState: null }
     };
+}
+
+// Clave de día en hora local (dailyStats usa YYYY-MM-DD)
+function localDateKey(ts = Date.now()) {
+    const d = new Date(ts);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 let state = createEmptyState();
@@ -45,14 +53,22 @@ function persistState() {
     chrome.storage.session.set({ [STATE_KEY]: state }).catch(() => {});
 }
 
-// ─── Configuración del usuario (duración máxima de sesión) ────────────────────
+// ─── Configuración del usuario ────────────────────────────────────────────────
 let sessionDurationMinutesConfig = DEFAULT_SESSION_DURATION;
+let dailyLimitMinutesConfig = 0;   // 0 = sin límite diario
+let emergencyPauseUntil = 0;       // timestamp; 0 = sin pausa activa
 
 function loadSessionDurationConfig() {
-    chrome.storage.sync.get(['sessionDuration'], (result) => {
-        if (!chrome.runtime.lastError &&
-            typeof result.sessionDuration === 'number' && result.sessionDuration > 0) {
+    chrome.storage.sync.get(['sessionDuration', 'dailyLimit', EMERGENCY_PAUSE_KEY], (result) => {
+        if (chrome.runtime.lastError) return;
+        if (typeof result.sessionDuration === 'number' && result.sessionDuration > 0) {
             sessionDurationMinutesConfig = result.sessionDuration;
+        }
+        if (typeof result.dailyLimit === 'number' && result.dailyLimit >= 0) {
+            dailyLimitMinutesConfig = result.dailyLimit;
+        }
+        if (typeof result[EMERGENCY_PAUSE_KEY] === 'number') {
+            emergencyPauseUntil = result[EMERGENCY_PAUSE_KEY];
         }
     });
 }
@@ -78,10 +94,28 @@ chrome.storage.onChanged.addListener((changes, area) => {
             sessionDurationMinutesConfig = value;
         }
     }
+    if (changes.dailyLimit) {
+        const value = changes.dailyLimit.newValue;
+        dailyLimitMinutesConfig = (typeof value === 'number' && value >= 0) ? value : 0;
+    }
+    if (changes[EMERGENCY_PAUSE_KEY]) {
+        emergencyPauseUntil = changes[EMERGENCY_PAUSE_KEY].newValue || 0;
+        if (Date.now() < emergencyPauseUntil) {
+            // Pausa recién activada: cerrar todas las sesiones en curso
+            endAllCasinoSessions();
+        }
+    }
     if (changes[CUSTOM_DOMAINS_STORAGE_KEY]) {
         customDomainsCache = changes[CUSTOM_DOMAINS_STORAGE_KEY].newValue || [];
     }
 });
+
+async function endAllCasinoSessions() {
+    await ensureState();
+    for (const tabId of Object.keys(state.casinoTabs)) {
+        await endCasinoSessionForTab(Number(tabId));
+    }
+}
 
 // ─── Detección de casinos ─────────────────────────────────────────────────────
 async function checkIfCasinoSite(hostname, url = '') {
@@ -163,6 +197,10 @@ chrome.tabs.onReplaced.addListener(async (addedTabId, removedTabId) => {
 // ─── Lógica de cambio de pestaña ──────────────────────────────────────────────
 async function handleTabChange(tab) {
     if (!tab.url || !/^https?:/.test(tab.url)) return;
+
+    // Con la pausa de emergencia activa no se inician sesiones
+    // (el content script muestra el bloqueo)
+    if (Date.now() < emergencyPauseUntil) return;
 
     await ensureState();
 
@@ -264,6 +302,8 @@ async function startCasinoSession(tabId, hostname) {
         state.lastRealityCheckMinute = 0;
         state.realityCheckIndex = 0;
         state.remindersShown = [];
+        state.nightNoticeShown = false;
+        state.dailyLimitNotifiedMinute = 0;
     }
 
     const startTime = existingPrimary
@@ -317,6 +357,8 @@ async function endCasinoSessionForTab(tabId, preserveGlobalState = false) {
             state.lastRealityCheckMinute = 0;
             state.realityCheckIndex = 0;
             state.remindersShown = [];
+            state.nightNoticeShown = false;
+            state.dailyLimitNotifiedMinute = 0;
             chrome.alarms.clear(TICK_ALARM);
             // Permitir que el popup de reflexión aparezca en la próxima sesión
             chrome.storage.local.remove(REFLECTION_FLAG_KEY).catch(() => {});
@@ -397,6 +439,48 @@ async function sessionTick() {
         }
     }
 
+    // Aviso nocturno: jugar de madrugada es un marcador de riesgo
+    const hour = new Date().getHours();
+    if (hour >= 0 && hour < 6 && !state.nightNoticeShown && state.activeTabId) {
+        state.nightNoticeShown = true;
+        chrome.tabs.sendMessage(state.activeTabId, {
+            type: 'updateMascotState',
+            state: 'tired',
+            message: getI18nMessage('realityCheckNight', 'Es de madrugada. Jugar a estas horas aumenta el riesgo. ¿No sería mejor descansar?')
+        }).catch(() => {});
+    }
+
+    // Límite diario acumulado (todas las sesiones de hoy + la actual)
+    let dailyLimitExceeded = false;
+    if (dailyLimitMinutesConfig > 0) {
+        try {
+            const result = await chrome.storage.local.get(['dailyStats']);
+            const todayEnded = result.dailyStats?.[localDateKey()]?.totalTime || 0;
+            const totalTodayMinutes = (todayEnded + (now - state.sessionStartTime)) / 60000;
+
+            if (totalTodayMinutes >= dailyLimitMinutesConfig) {
+                dailyLimitExceeded = true;
+                state.dragonState = 'angry';
+
+                // Recordar cada 10 minutos mientras siga jugando
+                const totalFloor = Math.floor(totalTodayMinutes);
+                if (state.dailyLimitNotifiedMinute === 0 ||
+                    totalFloor - state.dailyLimitNotifiedMinute >= REALITY_CHECK_INTERVAL_MIN) {
+                    state.dailyLimitNotifiedMinute = totalFloor;
+                    if (state.activeTabId) {
+                        chrome.tabs.sendMessage(state.activeTabId, {
+                            type: 'updateMascotState',
+                            state: 'angry',
+                            message: getI18nMessage('dailyLimitReached', 'Has alcanzado tu límite diario de juego. Es momento de parar por hoy')
+                        }).catch(() => {});
+                    }
+                }
+            }
+        } catch (error) {
+            // Storage no disponible: omitir el chequeo en este tick
+        }
+    }
+
     // Enviar actualización a las pestañas del dominio activo (si algo cambió)
     const activeInfo = state.casinoTabs[state.activeTabId];
     const currentBaseDomain = activeInfo ? activeInfo.baseDomain : null;
@@ -410,12 +494,18 @@ async function sessionTick() {
     if (changed && currentBaseDomain) {
         for (const [tabId, info] of Object.entries(state.casinoTabs)) {
             if (info.baseDomain === currentBaseDomain) {
-                chrome.tabs.sendMessage(Number(tabId), {
+                const update = {
                     type: 'sessionTimeUpdate',
                     sessionDurationMinutes,
                     isPrimary: info.isPrimary,
                     realityCheckMessage
-                }).catch(() => {});
+                };
+                // Forzar el estado visual solo cuando se supera el límite diario
+                // (el estado por tiempo de sesión lo calcula cada pestaña)
+                if (dailyLimitExceeded) {
+                    update.dragonState = 'angry';
+                }
+                chrome.tabs.sendMessage(Number(tabId), update).catch(() => {});
             }
         }
         state.lastUpdateSent = {
@@ -457,7 +547,7 @@ function sendReminder(reminderMinute) {
 // ─── Persistencia de historial de sesiones ────────────────────────────────────
 async function saveCasinoSession(hostname, timestamp, type, tabId, duration = null) {
     try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = localDateKey();
         const result = await chrome.storage.local.get(['casinoSessions', 'dailyStats']);
         const sessions = result.casinoSessions || [];
         const dailyStats = result.dailyStats || {};
@@ -501,14 +591,14 @@ async function cleanupOldData() {
                 session.endTime = session.startTime + 2 * 60 * 60 * 1000;
                 session.duration = 2 * 60 * 60 * 1000;
 
-                const sessionDay = new Date(session.startTime).toISOString().split('T')[0];
+                const sessionDay = localDateKey(session.startTime);
                 if (!dailyStats[sessionDay]) dailyStats[sessionDay] = { totalTime: 0, sessions: 0 };
                 dailyStats[sessionDay].totalTime += session.duration;
             }
         }
 
         // Conservar solo estadísticas de los últimos 30 días
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const thirtyDaysAgo = localDateKey(Date.now() - 30 * 24 * 60 * 60 * 1000);
         for (const day of Object.keys(dailyStats)) {
             if (day < thirtyDaysAgo) delete dailyStats[day];
         }
@@ -555,6 +645,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
 
         if (request.action === 'casinoDetected' || request.action === 'customDomainDetected') {
+            if (Date.now() < emergencyPauseUntil) {
+                sendResponse({ success: false, paused: true });
+                return;
+            }
             if (sender.tab?.id != null && request.hostname) {
                 await startCasinoSession(sender.tab.id, request.hostname);
                 const tabInfo = state.casinoTabs[sender.tab.id];

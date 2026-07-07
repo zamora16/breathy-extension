@@ -9,18 +9,56 @@ function i18n(key, substitutions) {
 const DEFAULT_SETTINGS = {
     breathingPattern: '4-4',
     continuousBreathing: false,
-    sessionDuration: 90 // tiempo máximo de sesión en minutos
+    sessionDuration: 90, // tiempo máximo de sesión en minutos
+    dailyLimit: 0        // límite diario acumulado en minutos (0 = sin límite)
 };
+
+// Pausa de emergencia (misma clave que usan content script y background)
+const EMERGENCY_PAUSE_KEY = 'emergencyPauseUntil';
+
+// Recursos de ayuda profesional (localizados vía i18n)
+const HELP_RESOURCE_KEYS = [
+    { nameKey: 'helpLink1Name', urlKey: 'helpLink1Url' },
+    { nameKey: 'helpLink2Name', urlKey: 'helpLink2Url' },
+    { nameKey: 'helpLink3Name', urlKey: 'helpLink3Url' }
+];
+
+// Clave de día en hora local (mismo formato que el background)
+function localDateKey(ts = Date.now()) {
+    const d = new Date(ts);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     aplicarTraducciones();
+    renderHelpLinks();
     cargarConfiguracion();
     cargarEstadisticas();
+    cargarEstadoPausa();
     setupEventListeners();
 
     // Refrescar el tiempo de sesión mientras el popup esté abierto
     setInterval(cargarEstadisticas, 10000);
 });
+
+// 🆘 Enlaces a recursos de ayuda en el pie del popup
+function renderHelpLinks() {
+    const container = document.getElementById('helpLinks');
+    if (!container) return;
+
+    HELP_RESOURCE_KEYS.forEach(({ nameKey, urlKey }) => {
+        const name = i18n(nameKey);
+        const url = i18n(urlKey);
+        if (!name || !url) return;
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = name;
+        container.appendChild(link);
+    });
+}
 
 // 🌍 Aplicar traducciones dinámicamente
 function aplicarTraducciones() {
@@ -55,19 +93,26 @@ function traducirOpcionesSelect() {
         });
     }
 
+    const formatDuration = (valor) => {
+        const horas = Math.floor(valor / 60);
+        const minutos = valor % 60;
+        if (horas === 0) return `${minutos} ${i18n('minutes')}`;
+        if (minutos === 0) return `${horas} ${horas === 1 ? i18n('hour') : i18n('hours')}`;
+        return `${horas} ${horas === 1 ? i18n('hour') : i18n('hours')} ${minutos} ${i18n('minutes')}`;
+    };
+
     const tiempoSelect = document.getElementById('tiempoMaximoSesion');
     if (tiempoSelect) {
         tiempoSelect.querySelectorAll('option').forEach(opcion => {
+            opcion.textContent = formatDuration(parseInt(opcion.value, 10));
+        });
+    }
+
+    const limiteSelect = document.getElementById('limiteDiario');
+    if (limiteSelect) {
+        limiteSelect.querySelectorAll('option').forEach(opcion => {
             const valor = parseInt(opcion.value, 10);
-            const horas = Math.floor(valor / 60);
-            const minutos = valor % 60;
-            if (horas === 0) {
-                opcion.textContent = `${minutos} ${i18n('minutes')}`;
-            } else if (minutos === 0) {
-                opcion.textContent = `${horas} ${horas === 1 ? i18n('hour') : i18n('hours')}`;
-            } else {
-                opcion.textContent = `${horas} ${horas === 1 ? i18n('hour') : i18n('hours')} ${minutos} ${i18n('minutes')}`;
-            }
+            opcion.textContent = valor === 0 ? i18n('noLimit') : formatDuration(valor);
         });
     }
 }
@@ -77,6 +122,7 @@ function setupEventListeners() {
     document.getElementById('mostrarTutorial').addEventListener('click', mostrarTutorial);
     document.getElementById('registrarSitio').addEventListener('click', registrarSitioActual);
     document.getElementById('gestionarSitios').addEventListener('click', toggleGestionSitios);
+    document.getElementById('activarPausa').addEventListener('click', activarPausaEmergencia);
 
     cargarDominiosRegistrados();
 }
@@ -98,6 +144,12 @@ function cargarConfiguracion() {
             if (!tiempoMaximoSelect.value) tiempoMaximoSelect.value = '90';
         }
 
+        const limiteDiarioSelect = document.getElementById('limiteDiario');
+        if (limiteDiarioSelect) {
+            limiteDiarioSelect.value = String(settings.dailyLimit || 0);
+            if (!limiteDiarioSelect.value) limiteDiarioSelect.value = '0';
+        }
+
         const respiracionContinuaCheckbox = document.getElementById('respiracionContinua');
         if (respiracionContinuaCheckbox) {
             respiracionContinuaCheckbox.checked = !!settings.continuousBreathing;
@@ -105,47 +157,140 @@ function cargarConfiguracion() {
     });
 }
 
-// Cargar tiempo de la sesión actual
+// Cargar estadísticas: sesión actual, total de hoy, semana y racha sin jugar
 async function cargarEstadisticas() {
     const tiempoElement = document.getElementById('tiempoHoy');
 
     try {
         const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-        if (!activeTab) {
-            tiempoElement.textContent = i18n('noActiveSession');
-            return;
-        }
-
-        const result = await chrome.storage.local.get(['casinoSessions']);
+        const result = await chrome.storage.local.get(['casinoSessions', 'dailyStats']);
         const sessions = result.casinoSessions || [];
+        const dailyStats = result.dailyStats || {};
+        const now = Date.now();
 
-        // Buscar sesión activa de la pestaña actual
-        const sesionActual = sessions.find(s => s.tabId === activeTab.id && !s.endTime);
+        // Sesión activa de la pestaña actual
+        const sesionActual = activeTab
+            ? sessions.find(s => s.tabId === activeTab.id && !s.endTime)
+            : null;
+        tiempoElement.textContent = sesionActual
+            ? formatearTiempo(now - sesionActual.startTime)
+            : i18n('noActiveSession');
 
-        if (sesionActual) {
-            actualizarTiempoMostrado(Date.now() - sesionActual.startTime);
+        // Tiempo de sesiones abiertas (aún sin volcar a dailyStats)
+        const openSessionsMs = sessions
+            .filter(s => !s.endTime)
+            .reduce((sum, s) => sum + Math.max(0, now - s.startTime), 0);
+
+        // Total de hoy
+        const todayKey = localDateKey();
+        const todayEndedMs = dailyStats[todayKey]?.totalTime || 0;
+        document.getElementById('tiempoTotalHoy').textContent =
+            formatearTiempo(todayEndedMs + openSessionsMs);
+
+        // Total de los últimos 7 días
+        let weekMs = openSessionsMs;
+        for (let i = 0; i < 7; i++) {
+            const key = localDateKey(now - i * 24 * 60 * 60 * 1000);
+            weekMs += dailyStats[key]?.totalTime || 0;
+        }
+        document.getElementById('tiempoSemana').textContent = formatearTiempo(weekMs);
+
+        // Racha de días sin jugar (solo se muestra si hay historial y racha >= 1)
+        const rachaRow = document.getElementById('rachaRow');
+        const hasHistory = Object.values(dailyStats).some(d => (d.totalTime || 0) > 0 || (d.sessions || 0) > 0);
+        const playedToday = todayEndedMs + openSessionsMs > 0 ||
+            (dailyStats[todayKey]?.sessions || 0) > 0;
+
+        if (hasHistory && !playedToday) {
+            let streak = 0;
+            for (let i = 1; i <= 30; i++) {
+                const key = localDateKey(now - i * 24 * 60 * 60 * 1000);
+                const day = dailyStats[key];
+                if (day && ((day.totalTime || 0) > 0 || (day.sessions || 0) > 0)) break;
+                streak++;
+            }
+            document.getElementById('rachaDias').textContent = streak >= 30 ? '30+' : String(streak);
+            rachaRow.style.display = streak >= 1 ? 'flex' : 'none';
         } else {
-            tiempoElement.textContent = i18n('noActiveSession');
+            rachaRow.style.display = 'none';
         }
     } catch (error) {
         tiempoElement.textContent = i18n('noActiveSession');
     }
 }
 
-// Formatear el tiempo mostrado
-function actualizarTiempoMostrado(milliseconds) {
-    const tiempoElement = document.getElementById('tiempoHoy');
-
+// Formatear milisegundos como "2h 15m" / "45 min"
+function formatearTiempo(milliseconds) {
     const minutos = Math.floor(milliseconds / (1000 * 60));
     const horas = Math.floor(minutos / 60);
     const minutosRestantes = minutos % 60;
 
     if (horas > 0) {
-        tiempoElement.textContent = `${horas}h ${minutosRestantes}m`;
-    } else {
-        tiempoElement.textContent = `${minutos} min`;
+        return `${horas}h ${minutosRestantes}m`;
     }
+    return `${minutos} min`;
+}
+
+// ==============================
+// PAUSA DE EMERGENCIA
+// ==============================
+
+function cargarEstadoPausa() {
+    chrome.storage.sync.get([EMERGENCY_PAUSE_KEY], (result) => {
+        if (chrome.runtime.lastError) return;
+        renderEstadoPausa(result[EMERGENCY_PAUSE_KEY] || 0);
+    });
+}
+
+function renderEstadoPausa(pausedUntil) {
+    const controls = document.getElementById('pauseControls');
+    const active = document.getElementById('pauseActive');
+    const activeText = document.getElementById('pauseActiveText');
+
+    if (Date.now() < pausedUntil) {
+        controls.style.display = 'none';
+        active.style.display = 'block';
+        const fecha = new Date(pausedUntil).toLocaleString(chrome.i18n.getUILanguage(), {
+            weekday: 'long', hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'long'
+        });
+        activeText.textContent = i18n('pauseActiveUntil', [fecha]);
+    } else {
+        controls.style.display = 'block';
+        active.style.display = 'none';
+    }
+}
+
+let pauseConfirmPending = false;
+
+function activarPausaEmergencia() {
+    const boton = document.getElementById('activarPausa');
+
+    // Doble confirmación: el primer clic cambia el texto del botón
+    if (!pauseConfirmPending) {
+        pauseConfirmPending = true;
+        boton.textContent = i18n('confirmPause');
+        setTimeout(() => {
+            if (pauseConfirmPending) {
+                pauseConfirmPending = false;
+                boton.textContent = i18n('activatePause');
+            }
+        }, 5000);
+        return;
+    }
+
+    pauseConfirmPending = false;
+    const horas = parseInt(document.getElementById('duracionPausa').value, 10) || 24;
+    const pausedUntil = Date.now() + horas * 60 * 60 * 1000;
+
+    chrome.storage.sync.set({ [EMERGENCY_PAUSE_KEY]: pausedUntil }, () => {
+        if (chrome.runtime.lastError) {
+            mostrarMensaje(i18n('errorGeneric'), 'error');
+            boton.textContent = i18n('activatePause');
+            return;
+        }
+        renderEstadoPausa(pausedUntil);
+        mostrarMensaje(i18n('pauseActivated'), 'success');
+    });
 }
 
 // Guardar configuración
@@ -162,7 +307,8 @@ function guardarConfiguracion() {
     const newSettings = {
         breathingPattern: patron,
         continuousBreathing: respiracionContinua,
-        sessionDuration: tiempoMaximo
+        sessionDuration: tiempoMaximo,
+        dailyLimit: parseInt(document.getElementById('limiteDiario').value, 10) || 0
     };
 
     chrome.storage.sync.set(newSettings, () => {

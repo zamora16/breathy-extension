@@ -21,9 +21,6 @@
   "time": {
     "message": "Tiempo activo"
   },
-  "loading": {
-    "message": "—"
-  },
   "configuration": {
     "message": "Configuración"
   },
@@ -292,6 +289,102 @@
   },
   "changedMyMind": {
     "message": "He cambiado de opinión, volver al juego"
+  },
+
+  "todayTotal": {
+    "message": "Hoy en total"
+  },
+  "thisWeek": {
+    "message": "Esta semana"
+  },
+  "daysWithoutGambling": {
+    "message": "Días sin jugar"
+  },
+
+  "dailyLimitLabel": {
+    "message": "Límite diario"
+  },
+  "dailyLimitInfo": {
+    "message": "Suma todas tus sesiones del día. Al superarlo, Breathy te pedirá parar"
+  },
+  "noLimit": {
+    "message": "Sin límite"
+  },
+  "dailyLimitReached": {
+    "message": "Has alcanzado tu límite diario de juego. Es momento de parar por hoy"
+  },
+  "realityCheckNight": {
+    "message": "Es de madrugada. Jugar a estas horas aumenta el riesgo. ¿No sería mejor descansar?"
+  },
+
+  "emergencyPause": {
+    "message": "Pausa de emergencia"
+  },
+  "emergencyPauseDescription": {
+    "message": "Bloquea todos los sitios de casino durante el tiempo elegido. No se puede desactivar hasta que termine"
+  },
+  "activatePause": {
+    "message": "Activar pausa"
+  },
+  "confirmPause": {
+    "message": "¿Confirmar? No podrás desactivarla"
+  },
+  "pauseActivated": {
+    "message": "Pausa activada. Cuida de ti 💚"
+  },
+  "pauseActiveUntil": {
+    "message": "Pausa activa hasta el $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "duration24h": {
+    "message": "24 horas"
+  },
+  "duration48h": {
+    "message": "48 horas"
+  },
+  "duration7d": {
+    "message": "7 días"
+  },
+  "pauseBlockTitle": {
+    "message": "Estás en pausa"
+  },
+  "pauseBlockMessage": {
+    "message": "Decidiste tomarte un descanso del juego.\nCuida de ti: este bloqueo termina en"
+  },
+  "blockCasinos24h": {
+    "message": "Bloquear casinos durante 24 h"
+  },
+  "hoursShort": {
+    "message": "h"
+  },
+  "minutesShort": {
+    "message": "min"
+  },
+
+  "needHelp": {
+    "message": "¿Necesitas ayuda?"
+  },
+  "helpLink1Name": {
+    "message": "Jugadores Anónimos"
+  },
+  "helpLink1Url": {
+    "message": "https://www.jugadoresanonimos.org"
+  },
+  "helpLink2Name": {
+    "message": "FEJAR"
+  },
+  "helpLink2Url": {
+    "message": "https://fejar.org"
+  },
+  "helpLink3Name": {
+    "message": "Gambling Therapy"
+  },
+  "helpLink3Url": {
+    "message": "https://www.gamblingtherapy.org/es/"
   },
 
   "reminder30": {

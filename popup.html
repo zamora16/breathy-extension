@@ -109,16 +109,32 @@
             font-size: 14px;
         }
 
+        .stat-item + .stat-item {
+            margin-top: 9px;
+            padding-top: 9px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
         .stat-label {
             font-size: 13px;
             color: rgba(221,221,232,0.55);
         }
-        
+
         .time-display {
             font-weight: 600;
             font-size: 20px;
             color: #7cc4a4;
             letter-spacing: -0.02em;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            font-size: 14px;
+            color: rgba(221,221,232,0.85);
+        }
+
+        .stat-green {
+            color: #7cc4a4;
         }
 
         /* Form Controls */
@@ -353,6 +369,52 @@
             border-color: rgba(108,168,152,0.14);
         }
 
+        /* Emergency Pause Section */
+        .emergency-section {
+            border-color: rgba(210,80,80,0.22);
+        }
+
+        .btn-danger {
+            background: rgba(210,80,80,0.18);
+            color: #e8a8a8;
+            border: 1px solid rgba(210,80,80,0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(210,80,80,0.32);
+        }
+
+        .pause-active-text {
+            margin: 0;
+            padding: 10px 12px;
+            border-radius: 7px;
+            background: rgba(210,80,80,0.12);
+            border: 1px solid rgba(210,80,80,0.25);
+            color: #e8a8a8;
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* Help Footer */
+        .help-footer {
+            text-align: center;
+            padding: 6px 0 2px;
+            font-size: 11px;
+            color: rgba(221,221,232,0.4);
+        }
+
+        .help-footer a {
+            color: rgba(147,197,253,0.75);
+            text-decoration: none;
+            margin: 0 6px;
+        }
+
+        .help-footer a:hover {
+            color: #93c5fd;
+            text-decoration: underline;
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 4px;
@@ -386,7 +448,19 @@
             <h3 data-i18n="statsToday">Sesión actual</h3>
             <div class="stat-item">
                 <span class="stat-label" data-i18n="time">Tiempo activo</span>
-                <span class="time-display" id="tiempoHoy" data-i18n="loading">—</span>
+                <span class="time-display" id="tiempoHoy">—</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label" data-i18n="todayTotal">Hoy en total</span>
+                <span class="stat-value" id="tiempoTotalHoy">—</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label" data-i18n="thisWeek">Esta semana</span>
+                <span class="stat-value" id="tiempoSemana">—</span>
+            </div>
+            <div class="stat-item" id="rachaRow" style="display:none;">
+                <span class="stat-label" data-i18n="daysWithoutGambling">Días sin jugar</span>
+                <span class="stat-value stat-green" id="rachaDias">—</span>
             </div>
         </div>
 
@@ -415,6 +489,19 @@
                 Tranquilo: 0–50% del límite · Cansado: 50–100% · Alerta: al alcanzar el límite
             </small>
 
+            <label for="limiteDiario" data-i18n="dailyLimitLabel">Límite diario</label>
+            <select id="limiteDiario">
+                <option value="0">Sin límite</option>
+                <option value="30">30 minutos</option>
+                <option value="60">1 hora</option>
+                <option value="120">2 horas</option>
+                <option value="180">3 horas</option>
+                <option value="240">4 horas</option>
+            </select>
+            <small data-i18n="dailyLimitInfo">
+                Suma todas tus sesiones del día. Al superarlo, Breathy te pedirá parar
+            </small>
+
             <div class="toggle-container">
                 <label for="respiracionContinua" data-i18n="continuousBreathing">Respiración continua</label>
                 <div class="toggle-wrapper">
@@ -432,16 +519,39 @@
         <div class="section custom-sites-section">
             <h4 data-i18n="customSites">Sitios personalizados</h4>
             <p data-i18n="customSitesDescription">Registra sitios donde quieres que Breathy se active</p>
-            
+
             <div class="button-group">
                 <button id="registrarSitio" class="btn btn-success" data-i18n="registerCurrentSite">Registrar sitio actual</button>
                 <button id="gestionarSitios" class="btn btn-secondary" data-i18n="manageSites">Gestionar</button>
             </div>
-            
+
             <div id="listaSitios" class="sites-list">
                 <p data-i18n="registeredSites">Sitios registrados</p>
                 <div id="dominiosRegistrados"></div>
             </div>
+        </div>
+
+        <div class="section emergency-section">
+            <h4 data-i18n="emergencyPause">Pausa de emergencia</h4>
+            <p data-i18n="emergencyPauseDescription">Bloquea todos los sitios de casino durante el tiempo elegido. No se puede desactivar hasta que termine</p>
+
+            <div id="pauseControls">
+                <select id="duracionPausa">
+                    <option value="24" data-i18n="duration24h">24 horas</option>
+                    <option value="48" data-i18n="duration48h">48 horas</option>
+                    <option value="168" data-i18n="duration7d">7 días</option>
+                </select>
+                <button id="activarPausa" class="btn btn-danger" data-i18n="activatePause">Activar pausa</button>
+            </div>
+
+            <div id="pauseActive" style="display:none;">
+                <p class="pause-active-text" id="pauseActiveText"></p>
+            </div>
+        </div>
+
+        <div class="help-footer">
+            <span data-i18n="needHelp">¿Necesitas ayuda?</span>
+            <div id="helpLinks"></div>
         </div>
     </div>
 

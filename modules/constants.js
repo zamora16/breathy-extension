@@ -118,6 +118,16 @@ function looksLikeCasinoSite(hostname, url = '') {
 // 🎮 Clave de almacenamiento de dominios personalizados del usuario
 const CUSTOM_DOMAINS_STORAGE_KEY = 'customProtectedDomains';
 
+// ⏸️ Pausa de emergencia: timestamp (ms) hasta el que los casinos están bloqueados
+const EMERGENCY_PAUSE_KEY = 'emergencyPauseUntil';
+
+// 🆘 Recursos de ayuda profesional (nombres y URLs localizados vía i18n)
+const HELP_RESOURCE_KEYS = [
+    { nameKey: 'helpLink1Name', urlKey: 'helpLink1Url' },
+    { nameKey: 'helpLink2Name', urlKey: 'helpLink2Url' },
+    { nameKey: 'helpLink3Name', urlKey: 'helpLink3Url' }
+];
+
 // 🐉 Estados del dragón según tiempo de sesión
 const DRAGON_STATES = {
     happy: {

@@ -21,9 +21,6 @@
   "time": {
     "message": "Active time"
   },
-  "loading": {
-    "message": "—"
-  },
   "configuration": {
     "message": "Settings"
   },
@@ -292,6 +289,102 @@
   },
   "changedMyMind": {
     "message": "I changed my mind, back to the game"
+  },
+
+  "todayTotal": {
+    "message": "Total today"
+  },
+  "thisWeek": {
+    "message": "This week"
+  },
+  "daysWithoutGambling": {
+    "message": "Days without gambling"
+  },
+
+  "dailyLimitLabel": {
+    "message": "Daily limit"
+  },
+  "dailyLimitInfo": {
+    "message": "Adds up all your sessions of the day. When exceeded, Breathy will ask you to stop"
+  },
+  "noLimit": {
+    "message": "No limit"
+  },
+  "dailyLimitReached": {
+    "message": "You've reached your daily gambling limit. Time to stop for today"
+  },
+  "realityCheckNight": {
+    "message": "It's late at night. Gambling at these hours increases risk. Wouldn't it be better to rest?"
+  },
+
+  "emergencyPause": {
+    "message": "Emergency pause"
+  },
+  "emergencyPauseDescription": {
+    "message": "Blocks all casino sites for the chosen time. It cannot be turned off until it ends"
+  },
+  "activatePause": {
+    "message": "Activate pause"
+  },
+  "confirmPause": {
+    "message": "Confirm? You won't be able to turn it off"
+  },
+  "pauseActivated": {
+    "message": "Pause activated. Take care 💚"
+  },
+  "pauseActiveUntil": {
+    "message": "Pause active until $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "duration24h": {
+    "message": "24 hours"
+  },
+  "duration48h": {
+    "message": "48 hours"
+  },
+  "duration7d": {
+    "message": "7 days"
+  },
+  "pauseBlockTitle": {
+    "message": "You're on a break"
+  },
+  "pauseBlockMessage": {
+    "message": "You decided to take a break from gambling.\nTake care of yourself: this block ends in"
+  },
+  "blockCasinos24h": {
+    "message": "Block casinos for 24 h"
+  },
+  "hoursShort": {
+    "message": "h"
+  },
+  "minutesShort": {
+    "message": "min"
+  },
+
+  "needHelp": {
+    "message": "Need help?"
+  },
+  "helpLink1Name": {
+    "message": "GamCare"
+  },
+  "helpLink1Url": {
+    "message": "https://www.gamcare.org.uk"
+  },
+  "helpLink2Name": {
+    "message": "Gamblers Anonymous"
+  },
+  "helpLink2Url": {
+    "message": "https://gamblersanonymous.org"
+  },
+  "helpLink3Name": {
+    "message": "Gambling Therapy"
+  },
+  "helpLink3Url": {
+    "message": "https://www.gamblingtherapy.org"
   },
 
   "reminder30": {
