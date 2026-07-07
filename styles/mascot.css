@@ -1,172 +1,18 @@
 /* Estilos esenciales para Breathy */
 
-/* Solo animaciones que se usan desde JavaScript */
+/* Animación de la mascota de emergencia (fallback) */
 @keyframes gentlePulse {
-    0%, 100% { 
-        transform: scale(1); 
-    }
-    50% { 
-        transform: scale(1.02); 
-    }
-}
-
-@keyframes breatheIn {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.1); }
-}
-
-@keyframes breatheOut {
-    0% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-/* Animación de respiración continua con halo plateado */
-@keyframes continuousBreathing {
-    0%, 100% { 
-        transform: scale(1);
-        box-shadow: 
-            0 0 0 1px rgba(226, 232, 240, 0.4),
-            0 0 15px rgba(192, 197, 208, 0.3),
-            0 0 25px rgba(248, 250, 252, 0.2);
-    }
-    25% { 
-        transform: scale(1.05);
-        box-shadow: 
-            0 0 0 2px rgba(226, 232, 240, 0.6),
-            0 0 25px rgba(192, 197, 208, 0.5),
-            0 0 35px rgba(248, 250, 252, 0.3);
-    }
-    50% { 
-        transform: scale(1.1);
-        box-shadow: 
-            0 0 0 3px rgba(226, 232, 240, 0.8),
-            0 0 35px rgba(192, 197, 208, 0.7),
-            0 0 45px rgba(248, 250, 252, 0.4);
-    }
-    75% { 
-        transform: scale(1.05);
-        box-shadow: 
-            0 0 0 2px rgba(226, 232, 240, 0.6),
-            0 0 25px rgba(192, 197, 208, 0.5),
-            0 0 35px rgba(248, 250, 252, 0.3);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% { 
-        transform: scale(1); 
-        background: rgba(0, 0, 0, 0.7); 
-    }
-    50% { 
-        transform: scale(1.05); 
-        background: rgba(0, 0, 0, 0.9); 
-    }
-}
-
-/* Animaciones para overlay de respiración */
-@keyframes fadeIn {
-    0% { 
-        opacity: 0; 
-        transform: scale(0.8);
-    }
-    100% { 
-        opacity: 1; 
+    0%, 100% {
         transform: scale(1);
     }
-}
-
-@keyframes fadeOut {
-    0% { 
-        opacity: 1; 
-        transform: scale(1);
-    }
-    100% { 
-        opacity: 0; 
-        transform: scale(0.8);
+    50% {
+        transform: scale(1.02);
     }
 }
 
-/* Modal de sesión de calma (si se usa) */
-.calm-session-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.3s ease;
-}
+/* ====== BOCADILLO DE DIÁLOGO DEL DRAGÓN ====== */
 
-.calm-session-content {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 40px;
-    border-radius: 20px;
-    text-align: center;
-    max-width: 400px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    animation: slideIn 0.4s ease;
-}
-
-.calm-session-timer {
-    font-size: 72px;
-    font-weight: bold;
-    margin: 20px 0;
-    color: #ffd700;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.calm-session-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    padding: 12px 24px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 16px;
-    margin: 0 10px;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.calm-session-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-}
-
-.calm-session-btn.primary {
-    background: #4ade80;
-    border-color: #22c55e;
-}
-
-.calm-session-btn.primary:hover {
-    background: #22c55e;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-/* ====== ESTILOS PARA BOCADILLO DE DIÁLOGO DEL DRAGÓN ====== */
-
-/* Animación de aparición del bocadillo como si el dragón estuviera hablando */
+/* Aparición del bocadillo como si el dragón estuviera hablando */
 @keyframes speechBubbleAppear {
     0% {
         opacity: 0;
@@ -181,23 +27,13 @@
     }
 }
 
-/* Animación sutil de "pulsación" para simular habla */
+/* Pulsación sutil para simular habla */
 @keyframes speechPulse {
     0%, 100% {
         transform: scale(1);
     }
     50% {
         transform: scale(1.02);
-    }
-}
-
-/* Animación de escritura gradual */
-@keyframes typeWriter {
-    from {
-        width: 0;
-    }
-    to {
-        width: 100%;
     }
 }
 
@@ -210,7 +46,7 @@
     border-radius: 18px;
     max-width: 160px;
     min-width: 120px;
-    box-shadow: 
+    box-shadow:
         0 4px 20px rgba(0, 0, 0, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
     border: 2px solid #e2e8f0;
@@ -223,7 +59,6 @@
     animation: speechBubbleAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* Efecto de pulsación sutil cuando el dragón está "hablando" */
 .dragon-speech-bubble.speaking {
     animation: speechBubbleAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55),
                speechPulse 2s ease-in-out infinite 0.6s;
@@ -239,7 +74,6 @@
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-/* Cola del bocadillo para posición bottom-right (bocadillo arriba del dragón) */
 .dragon-speech-bubble.position-bottom-right::before {
     bottom: -12px;
     right: 30px;
@@ -248,7 +82,6 @@
     border-top: 14px solid #ffffff;
 }
 
-/* Cola del bocadillo para posición bottom-left (bocadillo arriba del dragón) */
 .dragon-speech-bubble.position-bottom-left::before {
     bottom: -12px;
     left: 30px;
@@ -257,7 +90,6 @@
     border-top: 14px solid #ffffff;
 }
 
-/* Cola del bocadillo para posición top-right (bocadillo abajo del dragón) */
 .dragon-speech-bubble.position-top-right::before {
     top: -12px;
     right: 30px;
@@ -266,7 +98,6 @@
     border-bottom: 14px solid #ffffff;
 }
 
-/* Cola del bocadillo para posición top-left (bocadillo abajo del dragón) */
 .dragon-speech-bubble.position-top-left::before {
     top: -12px;
     left: 30px;
@@ -344,18 +175,16 @@
     border-bottom-color: #eff6ff;
 }
 
-/* Highlight especial para reality checks */
 .dragon-speech-bubble.reality-check-highlight {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
 
-/* Animación especial para reality checks */
 @keyframes pulseRealityCheck {
-    0%, 100% { 
+    0%, 100% {
         transform: scale(1);
         box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
     }
-    50% { 
+    50% {
         transform: scale(1.02);
         box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
     }
@@ -364,22 +193,14 @@
 /* Efecto hover para interactividad */
 .dragon-speech-bubble:hover {
     transform: scale(1.05);
-    box-shadow: 
+    box-shadow:
         0 6px 25px rgba(0, 0, 0, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.9);
     transition: all 0.2s ease;
 }
 
-/* Texto con efecto de escritura gradual (opcional) */
-.dragon-speech-bubble.typing .speech-text {
-    overflow: hidden;
-    white-space: nowrap;
-    animation: typeWriter 2s steps(40, end);
-}
-
 /* ====== BOTÓN DE CERRAR BOCADILLO ====== */
 
-/* Botón de cerrar en la esquina superior derecha del bocadillo */
 .dragon-speech-bubble .close-button {
     position: absolute;
     top: -8px;

@@ -1,56 +1,55 @@
-﻿{
+{
     "manifest_version": 3,
-    "name": "__MSG_extensionName__",
-    "version": "0.2",
-    "description": "__MSG_extensionDescription__",
+    "name": "__MSG_extensionNamePremium__",
+    "version": "1.0.0",
+    "description": "__MSG_extensionDescriptionPremium__",
     "default_locale": "es",
+    "minimum_chrome_version": "120",
     "icons": {
-        "16": "assets/logo.png",
-        "32": "assets/logo.png",
-        "48": "assets/logo.png",
-        "128": "assets/logo.png"
+        "16": "assets/icons/icon16.png",
+        "32": "assets/icons/icon32.png",
+        "48": "assets/icons/icon48.png",
+        "128": "assets/icons/icon128.png"
     },
-    "permissions": ["storage", "activeTab", "scripting", "notifications", "tabs"],
+    "permissions": ["storage", "activeTab", "scripting", "tabs", "alarms"],
     "action": {
-      "default_popup": "popup.html",
-      "default_title": "__MSG_popupTitle__",
-      "default_icon": {
-        "19": "assets/logo.png",
-        "38": "assets/logo.png"
-      }
+        "default_popup": "popup.html",
+        "default_title": "__MSG_popupTitle__",
+        "default_icon": {
+            "16": "assets/icons/icon16.png",
+            "32": "assets/icons/icon32.png",
+            "48": "assets/icons/icon48.png",
+            "128": "assets/icons/icon128.png"
+        }
     },
     "background": {
-      "service_worker": "background.js"
+        "service_worker": "background.js"
     },
     "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": [
-          "modules/constants.js", 
-          "modules/config-manager.js", 
-          "modules/casino-detector.js", 
-          "modules/ui-manager.js",
-          "modules/session-manager.js",
-          "content_script.js"
-        ],
-        "css": ["styles/mascot.css"]
-      }
+        {
+            "matches": ["<all_urls>"],
+            "js": [
+                "modules/constants.js",
+                "modules/config-manager.js",
+                "modules/casino-detector.js",
+                "modules/ui-manager.js",
+                "modules/session-manager.js",
+                "modules/tutorial-manager.js",
+                "content_script.js"
+            ],
+            "css": ["styles/mascot.css"],
+            "run_at": "document_idle"
+        }
     ],
     "web_accessible_resources": [
-      {
-        "resources": [
-          "assets/happy.webm",
-          "assets/tired.webm",
-          "assets/angry.webm",
-          "assets/breath.webm",
-          "assets/tutorial.png",
-          "modules/constants.js",
-          "modules/config-manager.js",
-          "modules/casino-detector.js",
-          "modules/ui-manager.js",
-          "modules/tutorial-manager.js"
-        ],
-        "matches": ["<all_urls>"]
-      }
+        {
+            "resources": [
+                "assets/happy.webm",
+                "assets/tired.webm",
+                "assets/angry.webm",
+                "assets/breath.webm"
+            ],
+            "matches": ["<all_urls>"]
+        }
     ]
-  }
+}
