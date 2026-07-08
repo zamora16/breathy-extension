@@ -2,10 +2,7 @@
   "extensionName": {
     "message": "Breathy"
   },
-  "extensionNamePremium": {
-    "message": "Breathy Premium"
-  },
-  "extensionDescriptionPremium": {
+  "extensionDescription": {
     "message": "Tu compañera de respiración y autocuidado para un juego online más responsable"
   },
   "popupTitle": {

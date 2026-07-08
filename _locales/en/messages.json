@@ -2,11 +2,8 @@
   "extensionName": {
     "message": "Breathy"
   },
-  "extensionNamePremium": {
-    "message": "Breathy Premium"
-  },
-  "extensionDescriptionPremium": {
-    "message": "Your breathing and self-care companion for more responsible online gaming"
+  "extensionDescription": {
+    "message": "Your breathing and self-care companion for more responsible online gambling"
   },
   "popupTitle": {
     "message": "Breathy - Settings"
