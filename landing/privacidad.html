@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de privacidad — Breathy</title>
+  <meta name="description" content="Política de privacidad de Breathy: todos los datos se guardan localmente en tu navegador. Sin servidores, sin analíticas y sin terceros.">
+  <link rel="canonical" href="https://breathy.example/privacidad.html">
+  <link rel="alternate" hreflang="es" href="https://breathy.example/privacidad.html">
+  <link rel="alternate" hreflang="en" href="https://breathy.example/en/privacy.html">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" type="image/png" href="assets/icon128.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="./" aria-label="Breathy, inicio">
+        <img src="assets/breathy.png" alt="Breathy" width="150" height="52">
+      </a>
+      <nav class="nav-links">
+        <a href="./">Inicio</a>
+        <a class="lang-switch" href="en/privacy.html" lang="en" hreflang="en">EN</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap prose">
+    <h1>Política de privacidad</h1>
+    <p class="updated">Última actualización: 8 de julio de 2026</p>
+
+    <p>
+      Breathy es una extensión de navegador para el juego responsable. Esta política
+      es corta porque la realidad es simple: <strong>Breathy no recopila, no transmite
+      y no comparte ningún dato personal</strong>.
+    </p>
+
+    <h2>Qué datos se guardan y dónde</h2>
+    <p>
+      Para funcionar, Breathy guarda estos datos <strong>exclusivamente en el almacenamiento
+      de tu navegador</strong> (las APIs <code>chrome.storage</code> de Chrome):
+    </p>
+    <ul>
+      <li>Tu configuración: patrón de respiración, límite de sesión, límite diario y preferencias de la mascota.</li>
+      <li>Tiempos de tus sesiones de juego y estadísticas diarias (para mostrarte tu tiempo de hoy, de la semana y tu racha).</li>
+      <li>Los sitios personalizados que registres manualmente.</li>
+      <li>El estado de la pausa de emergencia, si la activas.</li>
+    </ul>
+    <p>
+      Ninguno de estos datos sale hacia servidores de Breathy, porque
+      <strong>Breathy no tiene servidores</strong>. Tampoco usamos herramientas de analítica,
+      píxeles de seguimiento ni servicios de terceros.
+    </p>
+
+    <h2>Sincronización de Chrome</h2>
+    <p>
+      Parte de la configuración se guarda mediante <code>chrome.storage.sync</code>. Si tienes
+      activada la sincronización de Chrome con tu cuenta de Google, Google replicará esa
+      configuración entre tus propios dispositivos, igual que hace con tus marcadores.
+      Ese proceso lo gestiona Google según su propia política de privacidad; Breathy no
+      interviene ni tiene acceso.
+    </p>
+
+    <h2>Permisos que solicita la extensión</h2>
+    <ul>
+      <li><strong>storage</strong>: guardar tu configuración y estadísticas localmente.</li>
+      <li><strong>tabs</strong>: detectar cuándo entras o sales de una web de casino para medir el tiempo de sesión.</li>
+      <li><strong>activeTab y scripting</strong>: mostrar el tutorial en la pestaña activa cuando lo pides desde el popup.</li>
+      <li><strong>alarms</strong>: mantener el temporizador de sesión funcionando de forma fiable.</li>
+    </ul>
+    <p>
+      Breathy se ejecuta en las páginas que visitas únicamente para detectar webs de juego
+      y mostrar su interfaz en ellas. No lee formularios, contraseñas, datos bancarios ni
+      el contenido de las páginas.
+    </p>
+
+    <h2>Eliminación de datos</h2>
+    <p>
+      Al desinstalar la extensión, Chrome elimina todos sus datos locales. También puedes
+      borrar los datos de sincronización desde la configuración de tu cuenta de Google.
+      No necesitas pedirnos nada, porque nosotros no tenemos nada tuyo.
+    </p>
+
+    <h2>Menores</h2>
+    <p>
+      Breathy no está dirigida a menores de edad. El juego online con dinero real es ilegal
+      para menores en España y en la mayoría de países.
+    </p>
+
+    <h2>Cambios en esta política</h2>
+    <p>
+      Si esta política cambia, la fecha de la parte superior se actualizará y los cambios
+      se publicarán en esta misma página.
+    </p>
+
+    <h2>Contacto</h2>
+    <p>
+      Si tienes cualquier duda sobre esta política, escribe a
+      <a href="mailto:angelzamora1616@gmail.com">angelzamora1616@gmail.com</a>.
+    </p>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-links">
+        <a href="./">Inicio</a>
+        <a href="en/privacy.html" lang="en" hreflang="en">English</a>
+      </div>
+      <p>© 2026 Breathy</p>
+    </div>
+  </footer>
+
+</body>
+</html>

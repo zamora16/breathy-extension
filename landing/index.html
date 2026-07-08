@@ -1,26 +1,386 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <!--
+    ⚠️ ANTES DE PUBLICAR:
+    1. Sustituye "https://breathy.example" por tu dominio real en TODOS los ficheros
+       (index.html, en/index.html, privacidad.html, en/privacy.html, sitemap.xml, robots.txt).
+    2. Sustituye el enlace de Chrome Web Store (busca "REEMPLAZAR-ID") por la URL real de la ficha.
+  -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Breathy – Extensión para Juego Responsable</title>
+
+  <title>Breathy — Controla tu tiempo en casinos online | Extensión gratuita para Chrome</title>
+  <meta name="description" content="Extensión gratuita de Chrome para controlar el juego online: límites de tiempo, pausas de reflexión, respiración guiada y bloqueo temporal de casinos. Sin registro y 100% privada.">
+
+  <link rel="canonical" href="https://breathy.example/">
+  <link rel="alternate" hreflang="es" href="https://breathy.example/">
+  <link rel="alternate" hreflang="en" href="https://breathy.example/en/">
+  <link rel="alternate" hreflang="x-default" href="https://breathy.example/en/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Breathy">
+  <meta property="og:title" content="Breathy — Controla tu tiempo en casinos online">
+  <meta property="og:description" content="Extensión gratuita de Chrome que te ayuda a jugar con cabeza: límites de tiempo, pausas de reflexión y bloqueo temporal de casinos. Tus datos nunca salen de tu navegador.">
+  <meta property="og:url" content="https://breathy.example/">
+  <meta property="og:image" content="https://breathy.example/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:locale:alternate" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Breathy — Controla tu tiempo en casinos online">
+  <meta name="twitter:description" content="Extensión gratuita de Chrome para jugar con cabeza: límites de tiempo, respiración guiada y bloqueo temporal de casinos.">
+  <meta name="twitter:image" content="https://breathy.example/assets/og-image.png">
+
+  <link rel="icon" type="image/png" href="assets/icon128.png">
+  <link rel="apple-touch-icon" href="assets/icon128.png">
   <link rel="stylesheet" href="style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Breathy",
+    "operatingSystem": "Chrome",
+    "applicationCategory": "BrowserApplication",
+    "description": "Extensión gratuita de Chrome que ayuda a controlar el tiempo en casinos y webs de apuestas online: límites de sesión y diarios, pausas de reflexión, ejercicios de respiración y bloqueo temporal de casinos.",
+    "inLanguage": ["es", "en"],
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    },
+    "url": "https://breathy.example/",
+    "image": "https://breathy.example/assets/og-image.png"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Breathy bloquea los casinos online?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Por defecto no bloquea: te acompaña con límites, recordatorios y pausas de reflexión para que decidas tú. Cuando lo necesitas, su pausa de emergencia bloquea todos los sitios de casino durante 24 horas, 48 horas o 7 días, y no se puede desactivar hasta que termina."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Breathy es gratis?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí. Breathy es una extensión gratuita para Google Chrome. No hay suscripciones, no requiere registro ni cuenta, y no muestra publicidad."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿En qué casinos y casas de apuestas funciona?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Breathy detecta automáticamente los principales casinos y casas de apuestas de España, Latinoamérica, Reino Unido e internacionales (bet365, Codere, Sportium, Luckia, PokerStars, William Hill, Betfair y muchos más). Además puedes registrar manualmente cualquier otro sitio para que se active también en él."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo me ayuda a dejar de apostar online?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Breathy interrumpe el juego automático: te hace parar 10 segundos antes de entrar, te muestra cuánto tiempo llevas jugando, te lanza preguntas de control de realidad cada 10 minutos y te avisa al alcanzar tus límites. Si decides parar del todo, la pausa de emergencia bloquea los casinos hasta 7 días y te muestra recursos de ayuda profesional."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Puedo autoexcluirme del juego online de forma oficial?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí. En España existe el RGIAJ (Registro General de Interdicciones de Acceso al Juego), un registro oficial y gratuito que impide jugar en todos los operadores con licencia. Breathy es un apoyo del día a día, pero si necesitas una exclusión formal, el RGIAJ es el camino oficial."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Breathy guarda o comparte mis datos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Todos los datos (tiempos de sesión, configuración y sitios registrados) se guardan localmente en tu navegador con el almacenamiento de Chrome. Breathy no tiene servidores, no usa analíticas y no envía nada a terceros."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Sustituye a la ayuda profesional?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Breathy es una herramienta de autocuidado y control de tiempo, no un tratamiento. Si el juego está afectando a tu vida, contacta con asociaciones especializadas como FEJAR o Jugadores Anónimos, o habla con un profesional sanitario."
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
-  <div class="landing-container">
-    <img src="../assets/breathy.png" alt="Breathy logo" class="logo">
-    <h1>Breathy</h1>
-    <div class="tagline">Tu compañera digital para el juego responsable</div>
-    <ul class="features">
-      <li><strong>Respira y juega con calma:</strong> Breathy te guía con ejercicios de respiración y recordatorios suaves mientras navegas por webs de casino.</li>
-      <li><strong>Detección automática:</strong> Se activa solo en sitios de juego y apuestas, sin configuraciones complicadas.</li>
-      <li><strong>Límites personalizables:</strong> Elige tu tiempo máximo de sesión y recibe alertas para mantener el control.</li>
-      <li><strong>Privacidad total:</strong> Tus datos nunca salen de tu navegador.</li>
-    </ul>
-    <a class="cta" href="#" onclick="alert('Disponible en Chrome Web Store próximamente')">Próximamente en Chrome Web Store</a>
-  </div>
-  <div class="footer">
-    &copy; 2026 Breathy. Hecho con ❤️ para tu bienestar.
-  </div>
+
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="/" aria-label="Breathy, inicio">
+        <img src="assets/breathy.png" alt="Breathy" width="150" height="52">
+      </a>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a class="nav-anchor" href="#como-funciona">Cómo funciona</a>
+        <a class="nav-anchor" href="#funciones">Funciones</a>
+        <a class="nav-anchor" href="#preguntas">Preguntas</a>
+        <a class="nav-anchor" href="#ayuda">Ayuda</a>
+        <a class="lang-switch" href="en/" lang="en" hreflang="en">EN</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="hero wrap" style="border-top:none;">
+      <div>
+        <h1>El juego online, <em>bajo tu control</em></h1>
+        <p class="lead">
+          Breathy es una extensión gratuita para Chrome que te acompaña cuando entras
+          en un casino o casa de apuestas online: te ayuda a decidir con calma,
+          a respetar tus propios límites y a parar a tiempo. Sin registro, sin cuentas
+          y sin que un solo dato salga de tu navegador.
+        </p>
+        <div class="cta-row">
+          <a class="cta" href="https://chromewebstore.google.com/detail/breathy/REEMPLAZAR-ID" rel="noopener">Añadir a Chrome — gratis</a>
+          <a class="cta cta-secondary" href="#como-funciona">Ver cómo funciona</a>
+        </div>
+        <div class="trust-row">
+          <span>Gratis</span>
+          <span>Sin registro</span>
+          <span>Datos solo en tu navegador</span>
+          <span>Sin publicidad</span>
+        </div>
+      </div>
+      <div class="hero-mascot">
+        <video autoplay loop muted playsinline width="240" height="240" aria-label="Breathy, el dragón que te acompaña mientras juegas">
+          <source src="assets/happy.webm" type="video/webm">
+        </video>
+      </div>
+    </section>
+
+    <section class="wrap" id="te-suena">
+      <h2>¿Te suena?</h2>
+      <p class="section-intro">
+        El juego online está diseñado para que pierdas la noción del tiempo.
+        No es falta de voluntad: es diseño. Breathy pone de tu lado lo que las
+        webs de apuestas ponen en tu contra.
+      </p>
+      <ul class="pain-list">
+        <li><strong>«Solo iba a jugar diez minutos»</strong> — y cuando miras el reloj han pasado dos horas.</li>
+        <li><strong>Juegas de madrugada</strong> y al día siguiente te arrepientes de la sesión entera.</li>
+        <li><strong>Intentas recuperar lo perdido</strong> y acabas perdiendo todavía más.</li>
+        <li><strong>Quieres parar un tiempo</strong> pero al final siempre acabas abriendo la web.</li>
+      </ul>
+    </section>
+
+    <section class="wrap" id="como-funciona">
+      <h2>Cómo funciona</h2>
+      <p class="section-intro">
+        Instalas la extensión y te olvidas. Breathy solo aparece donde hace falta.
+      </p>
+      <div class="steps">
+        <div class="step">
+          <h3>Instala la extensión</h3>
+          <p>Un clic desde Chrome Web Store. No te pide correo, cuenta ni datos de ningún tipo.</p>
+        </div>
+        <div class="step">
+          <h3>Navega con normalidad</h3>
+          <p>En el resto de internet no notarás que existe. Breathy no interfiere en tu navegación.</p>
+        </div>
+        <div class="step">
+          <h3>Breathy aparece en los casinos</h3>
+          <p>Al entrar en una web de apuestas, te pide 10 segundos de reflexión y empieza a cuidar de tu tiempo.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" id="funciones">
+      <h2>Lo que hace por ti</h2>
+      <p class="section-intro">
+        Herramientas de juego responsable basadas en lo que de verdad funciona:
+        fricción antes de entrar, conciencia del tiempo y una salida fácil cuando quieres parar.
+      </p>
+      <div class="features-grid">
+        <div class="feature">
+          <h3>Pausa de reflexión al entrar</h3>
+          <p>Antes de empezar a jugar, 10 segundos para preguntarte cómo te sientes y cuánto llevas jugado hoy. La decisión sigue siendo tuya, pero ya no es automática.</p>
+        </div>
+        <div class="feature">
+          <h3>Un dragón que refleja tu sesión</h3>
+          <p>Breathy está tranquilo al empezar, se cansa a mitad de tu límite y se pone en alerta cuando lo superas. Tu tiempo de juego, visible de un vistazo sin números ni culpa.</p>
+        </div>
+        <div class="feature">
+          <h3>Respiración guiada</h3>
+          <p>Un clic en el dragón y un minuto de respiración guiada (4-4, 4-7-8 o 4-4-4) para bajar pulsaciones antes de decidir si sigues jugando.</p>
+        </div>
+        <div class="feature">
+          <h3>Preguntas de control de realidad</h3>
+          <p>Cada 10 minutos, un mensaje breve: ¿estás jugando con dinero que puedes perder? ¿Tenías algo que hacer después? Pequeños anclajes a la realidad.</p>
+        </div>
+        <div class="feature">
+          <h3>Límite de sesión y límite diario</h3>
+          <p>Configura tu tiempo máximo por sesión y un límite acumulado del día. Cerrar y volver a abrir la pestaña no lo reinicia.</p>
+        </div>
+        <div class="feature feature-pause">
+          <h3>Pausa de emergencia</h3>
+          <p>Cuando necesitas parar de verdad: bloquea todos los casinos durante 24 h, 48 h o 7 días. No se puede desactivar hasta que termina, y te muestra recursos de ayuda mientras dura.</p>
+        </div>
+        <div class="feature">
+          <h3>Tus datos, claros</h3>
+          <p>Tiempo de hoy, de la semana y tu racha de días sin jugar. Saber cuánto juegas es el primer paso para decidir cuánto quieres jugar.</p>
+        </div>
+        <div class="feature">
+          <h3>Privacidad absoluta</h3>
+          <p>Sin servidores, sin analíticas, sin cuentas. Todo se guarda en el almacenamiento local de tu navegador y muere ahí. <a href="privacidad.html">Política de privacidad</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" id="para-quien">
+      <h2>¿Para quién es Breathy?</h2>
+      <div class="audience">
+        <div class="feature">
+          <h3>Si juegas de vez en cuando</h3>
+          <p>Y quieres que siga siendo así: un ocio con horario, no una costumbre que se estira sola.</p>
+        </div>
+        <div class="feature">
+          <h3>Si notas que se te va</h3>
+          <p>Sesiones más largas de lo que querías, jugar para recuperar, madrugadas… Breathy te ayuda a frenar antes de que vaya a más.</p>
+        </div>
+        <div class="feature">
+          <h3>Si estás dejándolo</h3>
+          <p>Como apoyo del día a día junto a la ayuda profesional: bloqueo temporal, racha de días sin jugar y recursos siempre a mano.</p>
+        </div>
+      </div>
+      <p class="notice">
+        <strong>Importante:</strong> Breathy es una herramienta de autocuidado, no un tratamiento
+        médico ni psicológico. Si el juego está afectando a tu economía, tus relaciones o tu ánimo,
+        busca ayuda profesional. Abajo tienes recursos gratuitos.
+      </p>
+    </section>
+
+    <section class="wrap faq" id="preguntas">
+      <h2>Preguntas frecuentes</h2>
+      <details>
+        <summary>¿Breathy bloquea los casinos online?</summary>
+        <p>
+          Por defecto no bloquea: te acompaña con límites, recordatorios y pausas de reflexión
+          para que la decisión sea tuya. Cuando lo necesitas, su <strong>pausa de emergencia</strong>
+          bloquea todos los sitios de casino durante 24 horas, 48 horas o 7 días, y no se puede
+          desactivar hasta que termina.
+        </p>
+      </details>
+      <details>
+        <summary>¿Breathy es gratis?</summary>
+        <p>
+          Sí. Es una extensión gratuita para Google Chrome. No hay suscripciones, no requiere
+          registro ni cuenta, y no muestra publicidad.
+        </p>
+      </details>
+      <details>
+        <summary>¿En qué casinos y casas de apuestas funciona?</summary>
+        <p>
+          Detecta automáticamente los principales operadores de España, Latinoamérica, Reino Unido
+          e internacionales: bet365, Codere, Sportium, Luckia, PokerStars, William Hill, Betfair,
+          Bwin, Betsson, Caliente, Wplay y muchos más. Y si juegas en un sitio que no reconoce,
+          puedes registrarlo tú mismo en dos clics para que Breathy también se active allí.
+        </p>
+      </details>
+      <details>
+        <summary>¿Cómo me ayuda a dejar de apostar online?</summary>
+        <p>
+          Rompiendo el automatismo. Breathy te hace parar 10 segundos antes de entrar, te muestra
+          cuánto llevas jugando, te lanza preguntas de control de realidad cada 10 minutos y te
+          avisa al alcanzar tus límites. Y si decides parar del todo, la pausa de emergencia
+          bloquea los casinos hasta 7 días mientras te muestra recursos de ayuda profesional.
+        </p>
+      </details>
+      <details>
+        <summary>¿Puedo autoexcluirme del juego online de forma oficial?</summary>
+        <p>
+          Sí, y te animamos a hacerlo si lo necesitas. En España existe el
+          <a href="https://www.ordenacionjuego.es/es/rgiaj" rel="noopener">RGIAJ</a>
+          (Registro General de Interdicciones de Acceso al Juego): es oficial, gratuito e impide
+          jugar en todos los operadores con licencia en España. Breathy es un apoyo del día a día;
+          el RGIAJ es la vía formal.
+        </p>
+      </details>
+      <details>
+        <summary>¿Breathy guarda o comparte mis datos?</summary>
+        <p>
+          No. Todos los datos (tiempos de sesión, configuración, sitios registrados) se guardan
+          localmente en tu navegador. Breathy no tiene servidores, no usa analíticas y no envía
+          absolutamente nada a terceros. Puedes leer la
+          <a href="privacidad.html">política de privacidad completa</a>.
+        </p>
+      </details>
+      <details>
+        <summary>¿Sustituye a la ayuda profesional?</summary>
+        <p>
+          No. Breathy es una herramienta de autocuidado y control de tiempo, no un tratamiento.
+          Si el juego está afectando a tu vida, contacta con asociaciones especializadas como
+          FEJAR o Jugadores Anónimos, o habla con un profesional sanitario.
+        </p>
+      </details>
+    </section>
+
+    <section class="wrap" id="ayuda">
+      <h2>Si el juego se te ha ido de las manos, no estás solo</h2>
+      <p class="section-intro">
+        Estas organizaciones ayudan de forma gratuita y confidencial a personas con problemas
+        de juego y a sus familias. Pedir ayuda funciona.
+      </p>
+      <div class="help-grid">
+        <a class="help-card" href="https://fejar.org" rel="noopener">
+          <strong>FEJAR</strong>
+          <span>Federación Española de Jugadores de Azar Rehabilitados. Asociaciones de ayuda en toda España.</span>
+        </a>
+        <a class="help-card" href="https://www.jugadoresanonimos.org" rel="noopener">
+          <strong>Jugadores Anónimos</strong>
+          <span>Grupos de apoyo gratuitos y anónimos, presenciales y online.</span>
+        </a>
+        <a class="help-card" href="https://www.gamblingtherapy.org/es/" rel="noopener">
+          <strong>Gambling Therapy</strong>
+          <span>Apoyo online gratuito en español, disponible desde cualquier país.</span>
+        </a>
+        <a class="help-card" href="https://www.ordenacionjuego.es/es/rgiaj" rel="noopener">
+          <strong>RGIAJ — Autoexclusión oficial</strong>
+          <span>Registro estatal gratuito que impide el acceso a todos los operadores con licencia en España.</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="final-cta wrap">
+      <h2>Juega con cabeza. O no juegues, y que sea fácil.</h2>
+      <p>Gratis, privada y de tu lado. Instálala hoy y decide tú las reglas.</p>
+      <a class="cta" href="https://chromewebstore.google.com/detail/breathy/REEMPLAZAR-ID" rel="noopener">Añadir Breathy a Chrome</a>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-links">
+        <a href="privacidad.html">Privacidad</a>
+        <a href="https://github.com/zamora16/breathy-extension" rel="noopener">GitHub</a>
+        <a href="en/" lang="en" hreflang="en">English</a>
+      </div>
+      <p class="disclaimer">
+        Breathy no está afiliada a ningún casino, casa de apuestas ni operador de juego.
+        No promociona el juego online: existe para ayudarte a controlarlo. Esta herramienta
+        no sustituye el consejo médico o psicológico profesional.
+      </p>
+      <p>© 2026 Breathy</p>
+    </div>
+  </footer>
+
 </body>
 </html>
