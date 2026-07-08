@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://breathy.example/sitemap.xml
